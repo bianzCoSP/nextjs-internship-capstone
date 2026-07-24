@@ -10,9 +10,9 @@
 		"type-check": "tsc --noEmit",
 		"test": "",
 		"test:e2e": "",
-		"db:generate": "exec drizzle-kit generate",
-		"db:migrate": "exec drizzle-kit migrate",
-		"db:studio": "exec drizzle-kit studio",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio",
 		"format": "biome format --write",
 		"check": "biome check && tsc --noEmit"
 	},
