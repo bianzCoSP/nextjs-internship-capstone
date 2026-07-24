@@ -7,14 +7,14 @@ export default function SignInPage() {
 					<h1 className="text-3xl font-bold text-outer_space-500 dark:text-platinum-500 mb-2">
 						Welcome Back
 					</h1>
-					<p className="text-payne's_gray-500 dark:text-french_gray-400">
+					<p className="text-paynes_gray-500 dark:text-french_gray-400">
 						Sign in to your project management account
 					</p>
 				</div>
 
 				{/* TODO: Task 2.3 - Replace with actual Clerk SignIn component */}
-				<div className="bg-white dark:bg-outer_space-500 p-8 rounded-lg border border-french_gray-300 dark:border-payne's_gray-400">
-					<div className="text-center text-payne's_gray-500 dark:text-french_gray-400">
+				<div className="bg-white dark:bg-outer_space-500 p-8 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400">
+					<div className="text-center text-paynes_gray-500 dark:text-french_gray-400">
 						<p className="mb-4">
 							🔐 Clerk Authentication Component Placeholder
 						</p>
