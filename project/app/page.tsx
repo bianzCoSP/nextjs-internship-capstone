@@ -18,13 +18,13 @@ export default function HomePage() {
 							<ThemeToggle />
 							<Link
 								href="/dashboard"
-								className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500"
+								className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500 dark:hover:text-blue_munsell-300"
 							>
 								Dashboard
 							</Link>
 							<Link
 								href="/projects"
-								className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500"
+								className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500 dark:hover:text-blue_munsell-300"
 							>
 								Projects
 							</Link>
@@ -32,7 +32,7 @@ export default function HomePage() {
 								<Show when="signed-out">
 									<Link
 										href="/sign-in"
-										className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500"
+										className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500 dark:hover:text-blue_munsell-300"
 									>
 										Sign In
 									</Link>

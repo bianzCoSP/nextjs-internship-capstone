@@ -1,7 +1,13 @@
-import { SignIn } from "@clerk/nextjs";
+"use client";
 
-// TODO: Task 2.3 - Create sign-in and sign-up pages
+import { SignIn } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { Suspense } from "react";
+import { useTheme } from "@/components/theme-provider";
+
 export default function SignInPage() {
+	const { theme } = useTheme();
+
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-platinum-900 dark:bg-outer_space-600 px-4">
 			<div className="w-full max-w-md">
@@ -14,17 +20,18 @@ export default function SignInPage() {
 					</p>
 				</div>
 				<div className="flex justify-center">
-					<SignIn />
+					<Suspense>
+						<SignIn
+							appearance={{
+								theme: theme === "dark" ? dark : undefined,
+								variables: {
+									colorPrimary: "var(--color-blue_munsell-500)",
+								},
+							}}
+						/>
+					</Suspense>
 				</div>
 			</div>
 		</div>
 	);
 }
-
-/*
-TODO: Task 2.3 Implementation Notes:
-- Import SignIn from @clerk/nextjs
-- Configure sign-in redirects
-- Style to match design system
-- Add proper error handling
-*/

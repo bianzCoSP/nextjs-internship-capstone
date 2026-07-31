@@ -1,4 +1,7 @@
 import { SignUp } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
+import { Suspense } from "react";
+import { useTheme } from "@/components/theme-provider";
 
 // TODO: Task 2.3 - Create sign-in and sign-up pages
 export default function SignUpPage() {
@@ -15,14 +18,16 @@ export default function SignUpPage() {
 				</div>
 
 				<div className="flex justify-center">
-					<SignUp
-						appearance={{
-							elements: {
-								rootBox: "w-full",
-								card: "w-full shadow-none mx-auto",
-							},
-						}}
-					/>
+					<Suspense>
+						<SignUp
+							appearance={{
+								theme: theme === "dark" ? dark : undefined,
+								variables: {
+									colorPrimary: "var(--color-blue_munsell-500)",
+								},
+							}}
+						/>
+					</Suspense>
 				</div>
 			</div>
 		</div>
