@@ -1,4 +1,4 @@
-import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { Show, UserButton } from "@clerk/nextjs";
 import { ArrowRight, CheckCircle, Kanban, Users } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -30,22 +30,18 @@ export default function HomePage() {
 							</Link>
 							<Suspense>
 								<Show when="signed-out">
-									<SignInButton>
-										<button
-											type="button"
-											className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500"
-										>
-											Sign In
-										</button>
-									</SignInButton>
-									<SignUpButton>
-										<button
-											type="button"
-											className="px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600"
-										>
-											Get Started
-										</button>
-									</SignUpButton>
+									<Link
+										href="/sign-in"
+										className="text-outer_space-500 dark:text-platinum-500 hover:text-blue_munsell-500"
+									>
+										Sign In
+									</Link>
+									<Link
+										href="/sign-up"
+										className="px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600"
+									>
+										Get Started
+									</Link>
 								</Show>
 								<Show when="signed-in">
 									<UserButton />
