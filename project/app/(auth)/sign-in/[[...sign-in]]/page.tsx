@@ -1,13 +1,9 @@
 "use client";
 
 import { SignIn } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import { Suspense } from "react";
-import { useTheme } from "@/components/theme-provider";
 
 export default function SignInPage() {
-	const { theme } = useTheme();
-
 	return (
 		<div className="min-h-screen flex items-center justify-center bg-platinum-900 dark:bg-outer_space-600 px-4">
 			<div className="w-full max-w-md">
@@ -21,14 +17,7 @@ export default function SignInPage() {
 				</div>
 				<div className="flex justify-center">
 					<Suspense>
-						<SignIn
-							appearance={{
-								theme: theme === "dark" ? dark : undefined,
-								variables: {
-									colorPrimary: "var(--color-blue_munsell-500)",
-								},
-							}}
-						/>
+						<SignIn />
 					</Suspense>
 				</div>
 			</div>

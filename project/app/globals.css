@@ -145,6 +145,7 @@
 
 	.dark {
 		/* Dark theme color adjustments */
+		color-scheme: dark;
 	}
 }
 
