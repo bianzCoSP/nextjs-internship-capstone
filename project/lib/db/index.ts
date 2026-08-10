@@ -37,48 +37,89 @@ export const queries = {
 }
 */
 
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db/drizzle";
+import { projects, tasks, users } from "./schema";
+
 // Placeholder exports to prevent import errors
-export const db = "TODO: Implement database connection";
+
+type NewProject = typeof projects.$inferInsert;
+type UpdateProject = Partial<typeof projects.$inferInsert>;
+type NewTask = typeof tasks.$inferInsert;
+type UpdateTask = Partial<typeof tasks.$inferInsert>;
+type NewUser = typeof users.$inferInsert;
+type UpdateUser = Partial<typeof users.$inferInsert>;
 
 export const queries = {
 	projects: {
-		getAll: () => {
-			console.log("TODO: Task 4.1 - Implement project CRUD operations");
-			return [];
+		getAll: async () => {
+			return await db.select().from(projects);
 		},
-		getById: (id: string) => {
-			console.log(`TODO: Get project by ID: ${id}`);
-			return null;
+		getById: async (id: string) => {
+			const [project] = await db
+				.select()
+				.from(projects)
+				.where(eq(projects.id, id));
+			return project ?? null;
 		},
-		create: (data: any) => {
-			console.log("TODO: Create project", data);
-			return null;
+		create: async (data: NewProject) => {
+			const [project] = await db.insert(projects).values(data).returning();
+			return project;
 		},
-		update: (id: string, data: any) => {
-			console.log(`TODO: Update project ${id}`, data);
-			return null;
+		update: async (id: string, data: UpdateProject) => {
+			const [project] = await db
+				.update(projects)
+				.set({ ...data, updatedAt: new Date() })
+				.where(eq(projects.id, id))
+				.returning();
+			return project ?? null;
 		},
-		delete: (id: string) => {
-			console.log(`TODO: Delete project ${id}`);
-			return null;
+		delete: async (id: string) => {
+			await db.delete(projects).where(eq(projects.id, id));
 		},
 	},
 	tasks: {
-		getByProject: (projectId: string) => {
-			console.log(`TODO: Task 4.4 - Get tasks for project ${projectId}`);
-			return [];
+		getByProject: async (listId: string) => {
+			return await db.select().from(tasks).where(eq(tasks.listId, listId));
 		},
-		create: (data: any) => {
-			console.log("TODO: Create task", data);
-			return null;
+		create: async (data: NewTask) => {
+			const [task] = await db.insert(tasks).values(data).returning();
+			return task;
 		},
-		update: (id: string, data: any) => {
-			console.log(`TODO: Update task ${id}`, data);
-			return null;
+		update: async (id: string, data: UpdateTask) => {
+			const [task] = await db
+				.update(tasks)
+				.set({ ...data, updatedAt: new Date() })
+				.where(eq(tasks.id, id))
+				.returning();
+			return task ?? null;
 		},
-		delete: (id: string) => {
-			console.log(`TODO: Delete task ${id}`);
-			return null;
+		delete: async (id: string) => {
+			await db.delete(tasks).where(eq(tasks.id, id));
+		},
+	},
+	users: {
+		getByClerkId: async (clerkId: string) => {
+			const [user] = await db
+				.select()
+				.from(users)
+				.where(eq(users.clerkId, clerkId));
+			return user ?? null;
+		},
+		create: async (data: NewUser) => {
+			const [user] = await db.insert(users).values(data).returning();
+			return user;
+		},
+		update: async (clerkId: string, data: UpdateUser) => {
+			const [user] = await db
+				.update(users)
+				.set({ ...data, updatedAt: new Date() })
+				.where(eq(users.clerkId, clerkId))
+				.returning();
+			return user ?? null;
+		},
+		delete: async (clerkId: string) => {
+			await db.delete(users).where(eq(users.clerkId, clerkId));
 		},
 	},
 };
