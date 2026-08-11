@@ -33,9 +33,31 @@ export const taskSchema = z.object({
 })
 */
 
+import * as z from "zod";
+
 // Placeholder exports to prevent import errors
-export const projectSchema = "TODO: Implement project validation schema";
-export const taskSchema = "TODO: Implement task validation schema";
-export const userSchema = "TODO: Implement user validation schema";
-export const listSchema = "TODO: Implement list validation schema";
-export const commentSchema = "TODO: Implement comment validation schema";
+export const projectSchema = z.object({
+	name: z.string().min(1, "Name is required").max(100, "Name too long"),
+	description: z.string().max(500, "Description too long").optional(),
+	dueDate: z.date().min(new Date(), "Due date must be in future").optional(),
+});
+
+export const taskSchema = z.object({
+	title: z.string().min(1, "Title is required").max(200, "Title too long"),
+	description: z.string().max(1000, "Description too long").optional(),
+	priority: z.enum(["low", "medium", "high"]),
+	dueDate: z.date().optional(),
+	assigneeId: z.string().optional(),
+});
+
+export const userSchema = z.object({
+	email: z.email(),
+	name: z.string().min(1, "Name is required").max(100, "Name too long"),
+});
+
+export const listSchema = z.object({
+	name: z.string().min(1, "Name is required").max(100, "Name too long"),
+});
+export const commentSchema = z.object({
+	content: z.string().max(1000, "Comment is too long").optional(),
+});
