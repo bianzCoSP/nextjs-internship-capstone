@@ -26,6 +26,7 @@ export const projects = pgTable(
 		id: uuid("id").primaryKey().defaultRandom(),
 		name: text("name").notNull(),
 		description: text("description"),
+		color: text("color").notNull().default("bg-blue_munsell-500"),
 		ownerId: uuid("owner_id")
 			.notNull()
 			.references(() => users.id),

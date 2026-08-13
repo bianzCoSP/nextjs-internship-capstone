@@ -15,6 +15,13 @@
       "when": 1786585364126,
       "tag": "0001_eminent_spectrum",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786586321355,
+      "tag": "0002_chunky_black_bolt",
+      "breakpoints": true
     }
   ]
 }

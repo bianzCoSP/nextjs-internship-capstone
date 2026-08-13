@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "color" text DEFAULT 'bg-blue_munsell-500' NOT NULL;
