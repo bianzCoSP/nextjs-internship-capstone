@@ -10,6 +10,12 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const priorityEnum = pgEnum("priority", ["low", "medium", "high"]);
+export const statusEnum = pgEnum("status", [
+	"To Do",
+	"In Progress",
+	"Review",
+	"Done",
+]);
 
 export const users = pgTable("users", {
 	id: uuid("id").primaryKey().defaultRandom(),
@@ -26,6 +32,7 @@ export const projects = pgTable(
 		id: uuid("id").primaryKey().defaultRandom(),
 		name: text("name").notNull(),
 		description: text("description"),
+		status: statusEnum("status").notNull().default("To Do"),
 		color: text("color").notNull().default("bg-blue_munsell-500"),
 		ownerId: uuid("owner_id")
 			.notNull()
