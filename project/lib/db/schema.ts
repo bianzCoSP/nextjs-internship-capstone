@@ -82,6 +82,25 @@ export const tasks = pgTable(
 	],
 );
 
+export const projectMembers = pgTable(
+	"project_members",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		projectId: uuid("project_id")
+			.notNull()
+			.references(() => projects.id),
+		userId: uuid("user_id")
+			.notNull()
+			.references(() => users.id),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [
+		index("project_members_project_id_idx").on(table.projectId),
+		index("project_members_user_id_idx").on(table.userId),
+		index("project_members_project_user_idx").on(table.projectId, table.userId),
+	],
+);
+
 export const comments = pgTable(
 	"comments",
 	{
@@ -106,7 +125,8 @@ export const comments = pgTable(
 // Relations
 
 export const usersRelations = relations(users, ({ many }) => ({
-	projects: many(projects),
+	ownedProjects: many(projects),
+	projectMemberships: many(projectMembers),
 	assignedTasks: many(tasks),
 	comments: many(comments),
 }));
@@ -114,6 +134,18 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const projectsRelations = relations(projects, ({ one, many }) => ({
 	owner: one(users, { fields: [projects.ownerId], references: [users.id] }),
 	lists: many(lists),
+	members: many(projectMembers),
+}));
+
+export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
+	project: one(projects, {
+		fields: [projectMembers.projectId],
+		references: [projects.id],
+	}),
+	user: one(users, {
+		fields: [projectMembers.userId],
+		references: [users.id],
+	}),
 }));
 
 export const listsRelations = relations(lists, ({ one, many }) => ({

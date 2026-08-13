@@ -8,6 +8,13 @@
       "when": 1784876166397,
       "tag": "0000_fair_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786585364126,
+      "tag": "0001_eminent_spectrum",
+      "breakpoints": true
     }
   ]
 }
