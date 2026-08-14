@@ -1,0 +1,1 @@
+ALTER TABLE "tasks" ADD COLUMN "status" "status" DEFAULT 'To Do' NOT NULL;

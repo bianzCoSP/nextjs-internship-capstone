@@ -76,6 +76,7 @@ export const tasks = pgTable(
 			.references(() => lists.id),
 		assigneeId: uuid("assignee_id").references(() => users.id),
 		priority: priorityEnum("priority").notNull().default("medium"),
+		status: statusEnum("status").notNull().default("To Do"),
 		dueDate: timestamp("due_date"),
 		position: integer("position").notNull(),
 		createdAt: timestamp("created_at").notNull().defaultNow(),
