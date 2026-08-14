@@ -55,16 +55,34 @@ Dependencies to install:
 - OR swr (alternative)
 */
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queries } from "@/lib/db/index";
+
 // Placeholder to prevent import errors
 export function useProjects() {
-	console.log("TODO: Implement useProjects hook");
+	const queryClient = useQueryClient();
+
+	const {
+		data: projects,
+		isLoading,
+		error,
+	} = useQuery({
+		queryKey: ["projects"],
+		queryFn: () => queries.projects.getAll(),
+	});
+
+	const createProject = useMutation({
+		mutationFn: queries.projects.create,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["projects"] });
+		},
+	});
+
 	return {
-		projects: [],
-		isLoading: false,
-		error: null,
-		createProject: (data: any) => console.log("TODO: Create project", data),
-		updateProject: (id: string, data: any) =>
-			console.log(`TODO: Update project ${id}`, data),
-		deleteProject: (id: string) => console.log(`TODO: Delete project ${id}`),
+		projects,
+		isLoading,
+		error,
+		createProject: createProject.mutate,
+		isCreating: createProject.isPending,
 	};
 }

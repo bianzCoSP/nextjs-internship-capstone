@@ -17,6 +17,9 @@ importers:
       '@neondatabase/serverless':
         specifier: github:neondatabase/serverless
         version: https://codeload.github.com/neondatabase/serverless/tar.gz/ecce07e41487303a67095f7a95a9194d7ce4d89f
+      '@tanstack/react-query':
+        specifier: ^5.101.4
+        version: 5.101.4(react@19.2.4)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1113,6 +1116,11 @@ packages:
 
   '@tanstack/query-core@5.101.4':
     resolution: {integrity: sha512-gNwcvOJcRbLWPOLG/2OBm+zM+Yv+MKsXKEOWC57USuZDEsI71hEErQsiEGx5wX9rzWWkfwM0fVSPoiIFSsxfiw==}
+
+  '@tanstack/react-query@5.101.4':
+    resolution: {integrity: sha512-yRg2pfOCxIs4ZJW3XYYHU/WgtD04FHSnfHlpRT7h7pR77hwkdRG4wxbKe4aq6P0RvXUTBSQpQeadS1SUYUe+KA==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
@@ -2515,6 +2523,11 @@ snapshots:
       tailwindcss: 4.3.3
 
   '@tanstack/query-core@5.101.4': {}
+
+  '@tanstack/react-query@5.101.4(react@19.2.4)':
+    dependencies:
+      '@tanstack/query-core': 5.101.4
+      react: 19.2.4
 
   '@tybys/wasm-util@0.10.3':
     dependencies:

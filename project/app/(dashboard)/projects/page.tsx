@@ -1,4 +1,6 @@
-import { Filter, Plus, Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
+import { CreateProjectButton } from "@/components/create-project-button";
+import { ProjectGrid } from "@/components/project-grid";
 
 export default function ProjectsPage() {
 	return (
@@ -12,13 +14,7 @@ export default function ProjectsPage() {
 						Manage and organize your team projects
 					</p>
 				</div>
-				<button
-					type="button"
-					className="inline-flex items-center px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors"
-				>
-					<Plus size={20} className="mr-2" />
-					New Project
-				</button>
+				<CreateProjectButton />
 			</div>
 
 			{/* Implementation Tasks Banner */}
@@ -59,42 +55,7 @@ export default function ProjectsPage() {
 			</div>
 
 			{/* Projects Grid Placeholder */}
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{[1, 2, 3, 4, 5, 6].map((i) => (
-					<div
-						key={i}
-						className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-6 hover:shadow-lg transition-shadow"
-					>
-						<div className="flex items-start justify-between mb-4">
-							<div className="w-3 h-3 bg-blue_munsell-500 rounded-full"></div>
-							<div className="text-sm text-paynes_gray-500 dark:text-french_gray-400">
-								{Math.floor(Math.random() * 30) + 1} days left
-							</div>
-						</div>
-
-						<h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">
-							Sample Project {i}
-						</h3>
-
-						<p className="text-sm text-paynes_gray-500 dark:text-french_gray-400 mb-4">
-							This is a placeholder project description that will be replaced
-							with actual project data.
-						</p>
-
-						<div className="flex items-center justify-between text-sm text-paynes_gray-500 dark:text-french_gray-400 mb-4">
-							<span>{Math.floor(Math.random() * 8) + 2} members</span>
-							<span>{Math.floor(Math.random() * 20) + 5} tasks</span>
-						</div>
-
-						<div className="w-full bg-french_gray-300 dark:bg-paynes_gray-400 rounded-full h-2">
-							<div
-								className="bg-blue_munsell-500 h-2 rounded-full"
-								style={{ width: `${Math.floor(Math.random() * 80) + 20}%` }}
-							></div>
-						</div>
-					</div>
-				))}
-			</div>
+			<ProjectGrid />
 
 			{/* Component Placeholders */}
 			<div className="mt-8 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">

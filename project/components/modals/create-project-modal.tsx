@@ -30,18 +30,116 @@ Integration:
 - Handle errors gracefully
 */
 
-export function CreateProjectModal() {
+"use client";
+
+import { X } from "lucide-react";
+import { useActionState, useEffect } from "react";
+import { useFormStatus } from "react-dom";
+import {
+	type CreateProjectState,
+	createProject,
+} from "@/lib/actions/project-actions";
+
+interface CreateProjectModalProps {
+	onClose: () => void;
+	onCreated?: () => void;
+}
+
+const initialState: CreateProjectState = { success: false };
+
+function SubmitButton() {
+	const { pending } = useFormStatus();
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+		<button
+			type="submit"
+			disabled={pending}
+			className="px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors disabled:opacity-50"
+		>
+			{pending ? "Creating…" : "Create Project"}
+		</button>
+	);
+}
+
+export function CreateProjectModal({
+	onClose,
+	onCreated,
+}: CreateProjectModalProps) {
+	const [state, formAction] = useActionState(createProject, initialState);
+
+	useEffect(() => {
+		if (state.success) {
+			onCreated?.();
+			onClose();
+		}
+	}, [state.success, onClose, onCreated]);
+
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
 			<div className="bg-white dark:bg-outer_space-500 rounded-lg p-6 w-full max-w-md mx-4">
-				<h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500 mb-4">
-					TODO: Create Project Modal
-				</h3>
-				<div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded border border-yellow-200 dark:border-yellow-800">
-					<p className="text-sm text-yellow-800 dark:text-yellow-200">
-						📋 Implement project creation form with validation
-					</p>
+				<div className="flex items-center justify-between mb-4">
+					<h3 className="text-lg font-semibold">Create New Project</h3>
+					<button type="button" onClick={onClose}>
+						<X size={20} />
+					</button>
 				</div>
+
+				{state.errors?._form && (
+					<p className="text-sm text-red-500 mb-2">{state.errors._form[0]}</p>
+				)}
+
+				<form action={formAction} className="space-y-4">
+					<div>
+						<label className="block text-sm font-medium mb-2">
+							Project Name
+							<input
+								name="name"
+								type="text"
+								className="w-full px-3 py-2 border rounded-lg"
+								placeholder="Enter project name"
+							/>
+						</label>
+						{state.errors?.name && (
+							<p className="text-sm text-red-500">{state.errors.name[0]}</p>
+						)}
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium mb-2">
+							Description
+							<textarea
+								name="description"
+								rows={3}
+								className="w-full px-3 py-2 border rounded-lg"
+							/>
+						</label>
+						{state.errors?.description && (
+							<p className="text-sm text-red-500">
+								{state.errors.description[0]}
+							</p>
+						)}
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium mb-2">
+							Due Date
+							<input
+								name="dueDate"
+								type="date"
+								className="w-full px-3 py-2 border rounded-lg"
+							/>
+						</label>
+						{state.errors?.dueDate && (
+							<p className="text-sm text-red-500">{state.errors.dueDate[0]}</p>
+						)}
+					</div>
+
+					<div className="flex justify-end space-x-3 pt-4">
+						<button type="button" onClick={onClose} className="px-4 py-2">
+							Cancel
+						</button>
+						<SubmitButton />
+					</div>
+				</form>
 			</div>
 		</div>
 	);

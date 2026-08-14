@@ -33,13 +33,23 @@ export const taskSchema = z.object({
 })
 */
 
-import * as z from "zod";
+import { z } from "zod";
 
 // Placeholder exports to prevent import errors
 export const projectSchema = z.object({
 	name: z.string().min(1, "Name is required").max(100, "Name too long"),
 	description: z.string().max(500, "Description too long").optional(),
-	dueDate: z.date().min(new Date(), "Due date must be in future").optional(),
+	dueDate: z
+		.date()
+		.refine(
+			(date) => {
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				return date >= today;
+			},
+			{ message: "Due date can't be in the past" },
+		)
+		.optional(),
 });
 
 export const taskSchema = z.object({
