@@ -37,9 +37,9 @@ export const queries = {
 }
 */
 
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
-import { projects, tasks, users } from "./schema";
+import { lists, projectMembers, projects, tasks, users } from "./schema";
 
 // Placeholder exports to prevent import errors
 
@@ -53,7 +53,35 @@ type UpdateUser = Partial<typeof users.$inferInsert>;
 export const queries = {
 	projects: {
 		getAll: async () => {
-			return await db.select().from(projects);
+			const rows = await db
+				.select({
+					id: projects.id,
+					name: projects.name,
+					description: projects.description,
+					status: projects.status,
+					color: projects.color,
+					dueDate: projects.dueDate,
+					memberCount:
+						sql<number>`count(distinct ${projectMembers.userId})`.mapWith(
+							Number,
+						),
+					totalTasks: sql<number>`count(distinct ${tasks.id})`.mapWith(Number),
+					doneTasks:
+						sql<number>`count(distinct case when ${tasks.status} = 'Done' then ${tasks.id} end)`.mapWith(
+							Number,
+						),
+				})
+				.from(projects)
+				.leftJoin(projectMembers, eq(projectMembers.projectId, projects.id))
+				.leftJoin(lists, eq(lists.projectId, projects.id))
+				.leftJoin(tasks, eq(tasks.listId, lists.id))
+				.groupBy(projects.id);
+
+			return rows.map((p) => ({
+				...p,
+				progress:
+					p.totalTasks > 0 ? Math.round((p.doneTasks / p.totalTasks) * 100) : 0,
+			}));
 		},
 		getById: async (id: string) => {
 			const [project] = await db

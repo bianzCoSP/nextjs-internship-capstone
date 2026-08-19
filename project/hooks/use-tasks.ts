@@ -61,20 +61,47 @@ export function useTasks(projectId: string) {
 }
 */
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queries } from "@/lib/db/index";
+
 // Placeholder to prevent import errors
 export function useTasks(projectId: string) {
-	console.log(`TODO: Implement useTasks hook for project ${projectId}`);
+	const queryClient = useQueryClient();
+
+	const {
+		data: tasks,
+		isLoading,
+		error,
+	} = useQuery({
+		queryKey: ["tasks", projectId],
+		queryFn: () => queries.tasks.getByProject(projectId),
+		enabled: !!projectId,
+	});
+
+	const createTask = useMutation({
+		mutationFn: queries.tasks.create,
+		onMutate: async (newTask) => {
+			await queryClient.cancelQueries({ queryKey: ["tasks", projectId] });
+			const previousTasks = queryClient.getQueryData(["tasks", projectId]);
+			queryClient.setQueryData(["tasks", projectId], (old: Task[]) => [
+				...old,
+				{ ...newTask, id: "temp-" + Date.now() },
+			]);
+			return { previousTasks };
+		},
+		onError: (err, newTask, context) => {
+			queryClient.setQueryData(["tasks", projectId], context?.previousTasks);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+		},
+	});
+
 	return {
-		tasks: [],
-		isLoading: false,
-		error: null,
-		createTask: (data: any) => console.log("TODO: Create task", data),
-		updateTask: (id: string, data: any) =>
-			console.log(`TODO: Update task ${id}`, data),
-		deleteTask: (id: string) => console.log(`TODO: Delete task ${id}`),
-		moveTask: (taskId: string, newListId: string, position: number) =>
-			console.log(
-				`TODO: Move task ${taskId} to list ${newListId} at position ${position}`,
-			),
+		tasks,
+		isLoading,
+		error,
+		createTask: createTask.mutate,
+		isCreating: createTask.isPending,
 	};
 }

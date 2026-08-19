@@ -12,6 +12,7 @@
 		"test:e2e": "",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
+		"db:seed": "tsx lib/db/seed.ts",
 		"db:studio": "drizzle-kit studio",
 		"format": "biome format --write",
 		"check": "biome check && tsc --noEmit"

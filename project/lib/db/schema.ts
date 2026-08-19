@@ -22,9 +22,10 @@ export const users = pgTable("users", {
 	clerkId: text("clerk_id").notNull().unique(),
 	email: text("email").notNull().unique(),
 	name: text("name").notNull(),
+	role: text("role").notNull().default("Unassigned"),
 	createdAt: timestamp("created_at").notNull().defaultNow(),
 	updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}); // TODO: role needed. permissions? active status?
 
 export const projects = pgTable(
 	"projects",
