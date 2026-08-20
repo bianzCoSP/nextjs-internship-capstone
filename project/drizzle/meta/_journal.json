@@ -43,6 +43,13 @@
       "when": 1786689366905,
       "tag": "0005_pretty_argent",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787208588190,
+      "tag": "0006_clever_vargas",
+      "breakpoints": true
     }
   ]
 }

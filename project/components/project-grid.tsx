@@ -4,6 +4,7 @@ import { ProjectCard } from "@/components/project-card";
 
 interface ProjectGridProject {
 	id: string;
+	slug: string;
 	name: string;
 	description: string | null;
 	status: "To Do" | "In Progress" | "Review" | "Done";
@@ -41,6 +42,7 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
 					key={project.id}
 					project={{
 						id: project.id,
+						slug: project.slug,
 						name: project.name,
 						description: project.description ?? undefined,
 						progress: project.progress,

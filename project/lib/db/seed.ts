@@ -1,4 +1,5 @@
 import { config } from "dotenv";
+import slugify from "slugify";
 
 config({ path: ".env.local" });
 
@@ -42,6 +43,7 @@ async function main() {
 		.values([
 			{
 				name: "Website Redesign",
+				slug: slugify("Website Redesign", { lower: true, strict: true }),
 				description: "Revamp marketing site with new brand guidelines",
 				status: "In Progress",
 				color: "bg-blue_munsell-500",
@@ -50,6 +52,7 @@ async function main() {
 			},
 			{
 				name: "Mobile App Launch",
+				slug: slugify("Mobile App Launch", { lower: true, strict: true }),
 				description: "Ship v1.0 of the companion mobile app",
 				status: "To Do",
 				color: "bg-red-500",

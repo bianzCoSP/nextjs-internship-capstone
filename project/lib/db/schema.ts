@@ -32,6 +32,7 @@ export const projects = pgTable(
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
 		name: text("name").notNull(),
+		slug: text("slug").notNull().unique(),
 		description: text("description"),
 		status: statusEnum("status").notNull().default("To Do"),
 		color: text("color").notNull().default("bg-blue_munsell-500"),
@@ -45,6 +46,7 @@ export const projects = pgTable(
 	(table) => [
 		index("projects_owner_id_idx").on(table.ownerId),
 		index("projects_due_date_idx").on(table.dueDate),
+		index("projects_slug_idx").on(table.slug),
 	],
 );
 

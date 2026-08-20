@@ -40,6 +40,7 @@ export const queries = {
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
 import { lists, projectMembers, projects, tasks, users } from "./schema";
+import { generateUniqueProjectSlug } from "./slug";
 
 // Placeholder exports to prevent import errors
 
@@ -57,6 +58,7 @@ export const queries = {
 				.select({
 					id: projects.id,
 					name: projects.name,
+					slug: projects.slug,
 					description: projects.description,
 					status: projects.status,
 					color: projects.color,
@@ -90,14 +92,30 @@ export const queries = {
 				.where(eq(projects.id, id));
 			return project ?? null;
 		},
+		getBySlug: async (slug: string) => {
+			const [project] = await db
+				.select()
+				.from(projects)
+				.where(eq(projects.slug, slug));
+			return project ?? null;
+		},
 		create: async (data: NewProject) => {
-			const [project] = await db.insert(projects).values(data).returning();
+			const slug = await generateUniqueProjectSlug(data.name);
+			const [project] = await db
+				.insert(projects)
+				.values({ ...data, slug })
+				.returning();
 			return project;
 		},
 		update: async (id: string, data: UpdateProject) => {
+			// If name changes, regenerate slug — otherwise leave existing URLs stable
+			const updates: UpdateProject = { ...data, updatedAt: new Date() };
+			if (data.name) {
+				updates.slug = await generateUniqueProjectSlug(data.name);
+			}
 			const [project] = await db
 				.update(projects)
-				.set({ ...data, updatedAt: new Date() })
+				.set(updates)
 				.where(eq(projects.id, id))
 				.returning();
 			return project ?? null;

@@ -1,10 +1,12 @@
 "use client";
 
 import { Calendar, MoreHorizontal, Users } from "lucide-react";
+import Link from "next/link";
 
 interface ProjectCardProps {
 	project: {
 		id: string;
+		slug: string;
 		name: string;
 		description?: string;
 		progress: number;
@@ -30,12 +32,16 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
 	const color = project.color ?? "bg-blue_munsell-500";
 
 	return (
-		<div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-6 hover:shadow-lg transition-shadow cursor-pointer">
+		<Link
+			href={`/projects/${project.slug}`}
+			className="block bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+		>
 			<div className="flex items-start justify-between mb-4">
 				<div className={`w-3 h-3 rounded-full ${color}`} />
 				<button
 					type="button"
 					onClick={(e) => {
+						e.preventDefault();
 						e.stopPropagation();
 						// TODO: add edit delete dropdown
 					}}
@@ -90,6 +96,6 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
 					{project.status}
 				</span>
 			</div>
-		</div>
+		</Link>
 	);
 }
