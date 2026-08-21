@@ -16,7 +16,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useUIStore } from "@/stores/ui-store";
 import { ThemeToggle } from "./theme-toggle";
 
 const navigation = [
@@ -29,24 +29,26 @@ const navigation = [
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const isSidebarOpen = useUIStore((state) => state.isSidebarOpen);
+	const openSidebar = useUIStore((state) => state.openSidebar);
+	const closeSidebar = useUIStore((state) => state.closeSidebar);
 	const pathName = usePathname();
 
 	return (
 		<div className="min-h-screen bg-platinum-900 dark:bg-outer_space-600">
 			{/* Mobile sidebar overlay */}
-			{sidebarOpen && (
+			{isSidebarOpen && (
 				<button
 					type="button"
 					aria-label="mobile sidebar"
 					className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden cursor-default"
-					onClick={() => setSidebarOpen(false)}
+					onClick={closeSidebar}
 				/>
 			)}
 
 			{/* Sidebar */}
 			<div
-				className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-outer_space-500 border-r border-french_gray-300 dark:border-paynes_gray-400 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+				className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-outer_space-500 border-r border-french_gray-300 dark:border-paynes_gray-400 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
 			>
 				<div className="flex items-center justify-between h-16 px-6 border-b border-french_gray-300 dark:border-paynes_gray-400">
 					<Link href="/" className="text-2xl font-bold text-blue_munsell-500">
@@ -54,7 +56,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 					</Link>
 					<button
 						type="button"
-						onClick={() => setSidebarOpen(false)}
+						onClick={closeSidebar}
 						className="lg:hidden p-2 rounded-lg hover:bg-platinum-500 dark:hover:bg-paynes_gray-400"
 					>
 						<X size={20} />
@@ -69,6 +71,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 								<li key={item.name}>
 									<Link
 										href={item.href}
+										onClick={closeSidebar}
 										className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
 											isCurrent
 												? "bg-blue_munsell-100 dark:bg-blue_munsell-900 text-blue_munsell-700 dark:text-blue_munsell-300"
@@ -91,7 +94,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 				<div className="sticky top-0 z-30 flex h-16 items-center gap-x-4 border-b border-french_gray-300 dark:border-paynes_gray-400 bg-white dark:bg-outer_space-500 px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8">
 					<button
 						type="button"
-						onClick={() => setSidebarOpen(true)}
+						onClick={openSidebar}
 						className="lg:hidden p-2 rounded-lg hover:bg-platinum-500 dark:hover:bg-paynes_gray-400"
 					>
 						<Menu size={20} />

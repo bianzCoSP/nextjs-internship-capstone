@@ -48,15 +48,20 @@ export const useUIStore = create<UIState>((set) => ({
 }))
 */
 
+import { create } from "zustand";
+
+interface UIState {
+	isSidebarOpen: boolean;
+	openSidebar: () => void;
+	closeSidebar: () => void;
+	toggleSidebar: () => void;
+}
+
 // Placeholder to prevent import errors
-export const useUIStore = () => {
-	console.log("TODO: Implement UI store with Zustand");
-	return {
-		isCreateProjectModalOpen: false,
-		isCreateTaskModalOpen: false,
-		openCreateProjectModal: () =>
-			console.log("TODO: Open create project modal"),
-		closeCreateProjectModal: () =>
-			console.log("TODO: Close create project modal"),
-	};
-};
+export const useUIStore = create<UIState>((set) => ({
+	isSidebarOpen: false,
+	openSidebar: () => set({ isSidebarOpen: true }),
+	closeSidebar: () => set({ isSidebarOpen: false }),
+	toggleSidebar: () =>
+		set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+}));
