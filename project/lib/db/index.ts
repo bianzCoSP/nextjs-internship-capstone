@@ -124,9 +124,46 @@ export const queries = {
 			await db.delete(projects).where(eq(projects.id, id));
 		},
 	},
+	lists: {
+		getByProject: async (projectId: string) => {
+			return await db
+				.select()
+				.from(lists)
+				.where(eq(lists.projectId, projectId))
+				.orderBy(lists.position);
+		},
+	},
 	tasks: {
-		getByProject: async (listId: string) => {
-			return await db.select().from(tasks).where(eq(tasks.listId, listId));
+		getByProject: async (projectId: string) => {
+			const rows = await db
+				.select({
+					id: tasks.id,
+					title: tasks.title,
+					description: tasks.description,
+					listId: tasks.listId,
+					assigneeId: tasks.assigneeId,
+					assigneeName: users.name,
+					priority: tasks.priority,
+					status: tasks.status,
+					dueDate: tasks.dueDate,
+					position: tasks.position,
+					createdAt: tasks.createdAt,
+					updatedAt: tasks.updatedAt,
+				})
+				.from(tasks)
+				.innerJoin(lists, eq(lists.id, tasks.listId))
+				.leftJoin(users, eq(users.id, tasks.assigneeId))
+				.where(eq(lists.projectId, projectId))
+				.orderBy(tasks.position);
+
+			return rows;
+		},
+		getByList: async (listId: string) => {
+			return await db
+				.select()
+				.from(tasks)
+				.where(eq(tasks.listId, listId))
+				.orderBy(tasks.position);
 		},
 		create: async (data: NewTask) => {
 			const [task] = await db.insert(tasks).values(data).returning();

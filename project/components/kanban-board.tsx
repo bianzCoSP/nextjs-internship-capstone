@@ -1,154 +1,87 @@
 "use client";
 
-import { useState } from "react";
+import { MoreHorizontal } from "lucide-react";
+import { TaskCard, type TaskCardTask } from "./task-card";
 
-// TODO: Task 5.1 - Design responsive Kanban board layout
-// TODO: Task 5.2 - Implement drag-and-drop functionality with dnd-kit
+export interface KanbanList {
+	id: string;
+	name: string;
+	position: number;
+}
 
-/*
-TODO: Implementation Notes for Interns:
+export interface KanbanTask extends TaskCardTask {
+	listId: string;
+}
 
-This is the main Kanban board component that should:
-- Display columns (lists) horizontally
-- Allow drag and drop of tasks between columns
-- Support adding new tasks and columns
-- Handle real-time updates
-- Be responsive on mobile
+interface KanbanBoardProps {
+	lists: KanbanList[];
+	tasks: KanbanTask[];
+}
 
-Key dependencies to install:
-- @dnd-kit/core
-- @dnd-kit/sortable
-- @dnd-kit/utilities
+// TODO: Task 5.2 - Wire up drag-and-drop with dnd-kit. Columns/cards already
+// render from real data below; onDragEnd should call a server action (or
+// hit /api/tasks/[taskId]) with the task's new listId/position to persist
+// a move, then refresh.
 
-Features to implement:
-- Drag and drop tasks between columns
-- Drag and drop to reorder tasks within columns
-- Add new task button in each column
-- Add new column functionality
-- Optimistic updates (Task 5.4)
-- Real-time persistence (Task 5.5)
-- Mobile responsive design
-- Loading states
-- Error handling
-
-State management:
-- Use Zustand store for board state (Task 5.3)
-- Implement optimistic updates
-- Handle conflicts with server state
-*/
-
-const initialColumns = [
-	{
-		id: "todo",
-		title: "To Do",
-		tasks: [
-			{
-				id: "1",
-				title: "Design homepage mockup",
-				description: "Create initial design concepts",
-				priority: "high",
-				assignee: "John Doe",
-			},
-			{
-				id: "2",
-				title: "Research competitors",
-				description: "Analyze competitor websites",
-				priority: "medium",
-				assignee: "Jane Smith",
-			},
-			{
-				id: "3",
-				title: "Define user personas",
-				description: "Create detailed user personas",
-				priority: "low",
-				assignee: "Mike Johnson",
-			},
-		],
-	},
-	{
-		id: "in-progress",
-		title: "In Progress",
-		tasks: [
-			{
-				id: "4",
-				title: "Develop navigation component",
-				description: "Build responsive navigation",
-				priority: "high",
-				assignee: "Sarah Wilson",
-			},
-			{
-				id: "5",
-				title: "Content strategy",
-				description: "Plan content structure",
-				priority: "medium",
-				assignee: "Tom Brown",
-			},
-		],
-	},
-	{
-		id: "review",
-		title: "Review",
-		tasks: [
-			{
-				id: "6",
-				title: "Logo design options",
-				description: "Present logo variations",
-				priority: "high",
-				assignee: "Lisa Davis",
-			},
-		],
-	},
-	{
-		id: "done",
-		title: "Done",
-		tasks: [
-			{
-				id: "7",
-				title: "Project kickoff meeting",
-				description: "Initial team meeting completed",
-				priority: "medium",
-				assignee: "John Doe",
-			},
-			{
-				id: "8",
-				title: "Requirements gathering",
-				description: "Collected all requirements",
-				priority: "high",
-				assignee: "Jane Smith",
-			},
-		],
-	},
-];
-
-export function KanbanBoard({ projectId }: { projectId: string }) {
-	const [columns, setColumns] = useState(initialColumns);
-
-	const getPriorityColor = (priority: string) => {
-		switch (priority) {
-			case "high":
-				return "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300";
-			case "medium":
-				return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300";
-			case "low":
-				return "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300";
-			default:
-				return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
-		}
-	};
+export function KanbanBoard({ lists, tasks }: KanbanBoardProps) {
+	if (lists.length === 0) {
+		return (
+			<div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-12 text-center">
+				<p className="text-paynes_gray-500 dark:text-french_gray-400">
+					This project doesn't have any columns yet.
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-6">
-			<div className="text-center text-paynes_gray-500 dark:text-french_gray-400">
-				<h3 className="text-lg font-semibold mb-2">
-					TODO: Implement Kanban Board
-				</h3>
-				<p className="text-sm mb-4">Project ID: {projectId}</p>
-				<div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded border border-yellow-200 dark:border-yellow-800">
-					<p className="text-sm text-yellow-800 dark:text-yellow-200">
-						📋 This will be the main interactive Kanban board with drag-and-drop
-						functionality
-					</p>
-				</div>
+			<div className="flex space-x-6 overflow-x-auto pb-4">
+				{lists.map((list) => {
+					const listTasks = tasks.filter((task) => task.listId === list.id);
+
+					return (
+						<div key={list.id} className="shrink-0 w-80">
+							<div className="bg-platinum-800 dark:bg-outer_space-400 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400">
+								<div className="p-4 border-b border-french_gray-300 dark:border-paynes_gray-400">
+									<div className="flex items-center justify-between">
+										<h3 className="font-semibold text-outer_space-500 dark:text-platinum-500">
+											{list.name}
+											<span className="ml-2 px-2 py-1 text-xs bg-french_gray-300 dark:bg-paynes_gray-400 rounded-full">
+												{listTasks.length}
+											</span>
+										</h3>
+										<button
+											type="button"
+											className="p-1 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400 rounded"
+										>
+											<MoreHorizontal size={16} />
+										</button>
+									</div>
+								</div>
+
+								<div className="p-4 space-y-3 min-h-100">
+									{listTasks.map((task) => (
+										<TaskCard key={task.id} task={task} />
+									))}
+
+									{listTasks.length === 0 ? (
+										<p className="text-center text-xs text-paynes_gray-500 dark:text-french_gray-400 py-4">
+											No tasks yet
+										</p>
+									) : null}
+
+									<button
+										type="button"
+										className="w-full p-3 border-2 border-dashed border-french_gray-300 dark:border-paynes_gray-400 rounded-lg text-paynes_gray-500 dark:text-french_gray-400 hover:border-blue_munsell-500 hover:text-blue_munsell-500 transition-colors"
+									>
+										+ Add task
+									</button>
+								</div>
+							</div>
+						</div>
+					);
+				})}
 			</div>
 		</div>
 	);
