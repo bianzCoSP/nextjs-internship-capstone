@@ -1,72 +1,157 @@
-// TODO: Task 5.3 - Set up client-side state management with Zustand
-// TODO: Task 5.4 - Implement optimistic UI updates for smooth interactions
+"use client";
 
-/*
-TODO: Implementation Notes for Interns:
+import { create } from "zustand";
+import type { KanbanList, KanbanTask } from "@/components/kanban-board";
+import {
+	type CreateTaskState,
+	createTask as createTaskAction,
+} from "@/lib/actions/task-actions";
 
-Board state management for Kanban functionality:
-- Current project data
-- Lists/columns
-- Tasks
-- Drag and drop state
-- Optimistic updates
-- Sync with server
-
-Key features:
-- Optimistic task creation/updates
-- Drag and drop state management
-- Real-time synchronization
-- Conflict resolution
-- Offline support (optional)
-
-Example structure:
-import { create } from 'zustand'
-import { subscribeWithSelector } from 'zustand/middleware'
-
-interface BoardState {
-  // Data
-  currentProject: Project | null
-  lists: List[]
-  tasks: Task[]
-  
-  // UI state
-  draggedTask: Task | null
-  draggedOverList: string | null
-  
-  // Loading states
-  isLoading: boolean
-  isSaving: boolean
-  
-  // Actions
-  loadProject: (projectId: string) => Promise<void>
-  createTask: (listId: string, task: Partial<Task>) => Promise<void>
-  updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>
-  moveTask: (taskId: string, newListId: string, newPosition: number) => Promise<void>
-  deleteTask: (taskId: string) => Promise<void>
-  
-  // Drag and drop
-  setDraggedTask: (task: Task | null) => void
-  setDraggedOverList: (listId: string | null) => void
+interface CreateTaskInput {
+	listId: string;
+	projectSlug: string;
+	title: string;
+	description?: string;
+	priority: "low" | "medium" | "high";
+	dueDate?: string;
 }
 
-export const useBoardStore = create<BoardState>()(
-  subscribeWithSelector((set, get) => ({
-    // ... implementation
-  }))
-)
-*/
+interface BoardState {
+	projectId: string | null;
+	projectSlug: string | null;
+	lists: KanbanList[];
+	tasks: KanbanTask[];
 
-// Placeholder to prevent import errors
-export const useBoardStore = () => {
-	console.log("TODO: Implement board store with Zustand");
-	return {
-		currentProject: null,
-		lists: [],
-		tasks: [],
-		isLoading: false,
-		loadProject: (projectId: string) =>
-			console.log(`TODO: Load project ${projectId}`),
-		createTask: (listId: string, task: any) =>
-			console.log(`TODO: Create task in list ${listId}`, task),
-	};
-};
+	draggedTaskId: string | null;
+	draggedOverListId: string | null;
+
+	isLoading: boolean;
+	isSaving: boolean;
+	error: string | null;
+
+	hydrateBoard: (data: {
+		projectId: string;
+		projectSlug: string;
+		lists: KanbanList[];
+		tasks: KanbanTask[];
+	}) => void;
+
+	createTask: (input: CreateTaskInput) => Promise<CreateTaskState>;
+	updateTaskLocal: (taskId: string, updates: Partial<KanbanTask>) => void;
+	removeTaskLocal: (taskId: string) => void;
+
+	// TODO: change this to server action version with dnd-kit/core
+	moveTaskLocal: (
+		taskId: string,
+		newListId: string,
+		newPosition: number,
+	) => void;
+
+	setDraggedTask: (taskId: string | null) => void;
+	setDraggedOverList: (listId: string | null) => void;
+	clearError: () => void;
+}
+
+export const useBoardStore = create<BoardState>((set, get) => ({
+	projectId: null,
+	projectSlug: null,
+	lists: [],
+	tasks: [],
+
+	draggedTaskId: null,
+	draggedOverListId: null,
+
+	isLoading: false,
+	isSaving: false,
+	error: null,
+
+	hydrateBoard: ({ projectId, projectSlug, lists, tasks }) =>
+		set({ projectId, projectSlug, lists, tasks }),
+
+	createTask: async (input) => {
+		const tempId = `temp-${Date.now()}`;
+		const optimisticPosition = get().tasks.filter(
+			(task) => task.listId === input.listId,
+		).length;
+
+		const optimisticTask = {
+			id: tempId,
+			title: input.title,
+			description: input.description ?? null,
+			listId: input.listId,
+			assigneeId: null,
+			assigneeName: null,
+			priority: input.priority,
+			status: "To Do",
+			dueDate: input.dueDate ? new Date(input.dueDate) : null,
+			position: optimisticPosition,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		} as unknown as KanbanTask;
+
+		set((state) => ({
+			tasks: [...state.tasks, optimisticTask],
+			isSaving: true,
+			error: null,
+		}));
+
+		const formData = new FormData();
+		formData.set("listId", input.listId);
+		formData.set("projectSlug", input.projectSlug);
+		formData.set("title", input.title);
+		if (input.description) formData.set("description", input.description);
+		formData.set("priority", input.priority);
+		if (input.dueDate) formData.set("dueDate", input.dueDate);
+
+		const result = await createTaskAction({ success: false }, formData);
+
+		if (!result.success || !result.task) {
+			set((state) => ({
+				tasks: state.tasks.filter((task) => task.id !== tempId),
+				isSaving: false,
+				error: result.errors?._form?.[0] ?? null,
+			}));
+			return result;
+		}
+
+		set((state) => ({
+			tasks: state.tasks.map((task) =>
+				task.id === tempId
+					? ({
+							...task,
+							...result.task,
+							assigneeName: null,
+						} as KanbanTask)
+					: task,
+			),
+			isSaving: false,
+		}));
+
+		return result;
+	},
+
+	updateTaskLocal: (taskId, updates) =>
+		set((state) => ({
+			tasks: state.tasks.map((task) =>
+				task.id === taskId ? { ...task, ...updates } : task,
+			),
+		})),
+
+	removeTaskLocal: (taskId) =>
+		set((state) => ({
+			tasks: state.tasks.filter((task) => task.id !== taskId),
+		})),
+
+	moveTaskLocal: (taskId, newListId, newPosition) =>
+		set((state) => ({
+			tasks: state.tasks.map((task) =>
+				task.id === taskId
+					? { ...task, listId: newListId, position: newPosition }
+					: task,
+			),
+		})),
+
+	setDraggedTask: (taskId) => set({ draggedTaskId: taskId }),
+	setDraggedOverList: (listId) => set({ draggedOverListId: listId }),
+	clearError: () => set({ error: null }),
+}));

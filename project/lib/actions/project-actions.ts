@@ -1,4 +1,3 @@
-// lib/actions/projects.ts
 "use server";
 
 import { auth } from "@clerk/nextjs/server";

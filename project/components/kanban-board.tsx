@@ -1,6 +1,10 @@
 "use client";
 
 import { MoreHorizontal } from "lucide-react";
+import { useBoardStore } from "@/stores/board-store";
+import { useUIStore } from "@/stores/ui-store";
+import { CreateTaskButton } from "./create-task-button";
+import { CreateTaskModal } from "./modals/create-task-modal";
 import { TaskCard, type TaskCardTask } from "./task-card";
 
 export interface KanbanList {
@@ -16,14 +20,38 @@ export interface KanbanTask extends TaskCardTask {
 interface KanbanBoardProps {
 	lists: KanbanList[];
 	tasks: KanbanTask[];
+	projectId: string;
+	projectSlug: string;
 }
 
-// TODO: Task 5.2 - Wire up drag-and-drop with dnd-kit. Columns/cards already
-// render from real data below; onDragEnd should call a server action (or
-// hit /api/tasks/[taskId]) with the task's new listId/position to persist
-// a move, then refresh.
+export function KanbanBoard({
+	lists: initialLists,
+	tasks: initialTasks,
+	projectId,
+	projectSlug,
+}: KanbanBoardProps) {
+	const storeProjectId = useBoardStore((state) => state.projectId);
+	const hydrateBoard = useBoardStore((state) => state.hydrateBoard);
+	if (storeProjectId !== projectId) {
+		hydrateBoard({
+			projectId,
+			projectSlug,
+			lists: initialLists,
+			tasks: initialTasks,
+		});
+	}
 
-export function KanbanBoard({ lists, tasks }: KanbanBoardProps) {
+	const lists = useBoardStore((state) => state.lists);
+	const tasks = useBoardStore((state) => state.tasks);
+
+	const isCreateTaskModalOpen = useUIStore(
+		(state) => state.isCreateTaskModalOpen,
+	);
+	const createTaskListId = useUIStore((state) => state.createTaskListId);
+	const closeCreateTaskModal = useUIStore(
+		(state) => state.closeCreateTaskModal,
+	);
+
 	if (lists.length === 0) {
 		return (
 			<div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-12 text-center">
@@ -71,18 +99,21 @@ export function KanbanBoard({ lists, tasks }: KanbanBoardProps) {
 										</p>
 									) : null}
 
-									<button
-										type="button"
-										className="w-full p-3 border-2 border-dashed border-french_gray-300 dark:border-paynes_gray-400 rounded-lg text-paynes_gray-500 dark:text-french_gray-400 hover:border-blue_munsell-500 hover:text-blue_munsell-500 transition-colors"
-									>
-										+ Add task
-									</button>
+									<CreateTaskButton listId={list.id} />
 								</div>
 							</div>
 						</div>
 					);
 				})}
 			</div>
+
+			{isCreateTaskModalOpen && createTaskListId && (
+				<CreateTaskModal
+					listId={createTaskListId}
+					projectSlug={projectSlug}
+					onClose={closeCreateTaskModal}
+				/>
+			)}
 		</div>
 	);
 }

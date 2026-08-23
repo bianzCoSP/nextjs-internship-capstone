@@ -82,7 +82,12 @@ export default async function ProjectPage({
 				</div>
 			</div>
 
-			<KanbanBoard lists={lists} tasks={tasks} />
+			<KanbanBoard
+				lists={lists}
+				tasks={tasks}
+				projectId={project.id}
+				projectSlug={project.slug}
+			/>
 		</div>
 	);
 }
