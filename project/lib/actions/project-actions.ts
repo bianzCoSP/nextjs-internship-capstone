@@ -18,12 +18,14 @@ export async function createProject(
 	const { userId: clerkId } = await auth();
 	if (!clerkId) return { success: false, errors: { _form: ["Not signed in"] } };
 
+	const rawDueDate = formData.get("dueDate") as string;
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+
 	const rawData = {
 		name: formData.get("name") as string,
 		description: (formData.get("description") as string) || undefined,
-		dueDate: formData.get("dueDate")
-			? new Date(formData.get("dueDate") as string)
-			: undefined,
+		dueDate: rawDueDate ? new Date(rawDueDate) : today,
 	};
 
 	const parsedSchema = projectSchema.safeParse(rawData);

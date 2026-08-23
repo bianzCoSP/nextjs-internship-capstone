@@ -5,6 +5,7 @@ export interface TaskCardTask {
 	priority: "low" | "medium" | "high";
 	assigneeName?: string | null;
 	dueDate?: Date | string | null;
+	createdAt?: Date | string | null;
 }
 
 interface TaskCardProps {
@@ -37,6 +38,14 @@ function isOverdue(dueDate?: Date | string | null) {
 function formatDueDate(dueDate?: Date | string | null) {
 	if (!dueDate) return null;
 	return new Date(dueDate).toLocaleDateString(undefined, {
+		month: "short",
+		day: "numeric",
+	});
+}
+
+function formatCreatedDate(createdAt?: Date | string | null) {
+	if (!createdAt) return null;
+	return new Date(createdAt).toLocaleDateString(undefined, {
 		month: "short",
 		day: "numeric",
 	});
@@ -83,14 +92,25 @@ export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
 					) : null}
 				</div>
 
-				{task.assigneeName ? (
-					<div
-						title={task.assigneeName}
-						className="w-6 h-6 shrink-0 bg-blue_munsell-500 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-					>
-						{getInitials(task.assigneeName)}
-					</div>
-				) : null}
+				<div className="flex items-center gap-2">
+					{formatCreatedDate(task.createdAt) ? (
+						<span
+							title={`Created ${formatCreatedDate(task.createdAt)}`}
+							className="text-xs text-paynes_gray-500 dark:text-french_gray-400"
+						>
+							Created {formatCreatedDate(task.createdAt)}
+						</span>
+					) : null}
+
+					{task.assigneeName ? (
+						<div
+							title={task.assigneeName}
+							className="w-6 h-6 shrink-0 bg-blue_munsell-500 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+						>
+							{getInitials(task.assigneeName)}
+						</div>
+					) : null}
+				</div>
 			</div>
 		</button>
 	);

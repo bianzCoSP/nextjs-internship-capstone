@@ -9,7 +9,9 @@ import { taskSchema } from "@/lib/validations";
 export type CreateTaskState = {
 	success: boolean;
 	errors?: Record<string, string[] | undefined>;
-	task?: Awaited<ReturnType<typeof queries.tasks.create>>;
+	task?: Awaited<ReturnType<typeof queries.tasks.create>> & {
+		assigneeName?: string | null;
+	};
 };
 
 const createTaskSchema = taskSchema.omit({ assigneeId: true });
@@ -26,6 +28,11 @@ export async function createTask(
 	const listId = formData.get("listId") as string;
 	if (!listId) {
 		return { success: false, errors: { _form: ["Missing list"] } };
+	}
+
+	const user = await queries.users.getByClerkId(clerkId);
+	if (!user) {
+		return { success: false, errors: { _form: ["User not found"] } };
 	}
 
 	const rawData = {
@@ -55,6 +62,7 @@ export async function createTask(
 		...parsedSchema.data,
 		listId,
 		position,
+		assigneeId: user.id,
 	});
 
 	const projectSlug = formData.get("projectSlug") as string;
@@ -62,5 +70,5 @@ export async function createTask(
 		revalidatePath(`/projects/${projectSlug}`);
 	}
 
-	return { success: true, task };
+	return { success: true, task: { ...task, assigneeName: user.name } };
 }

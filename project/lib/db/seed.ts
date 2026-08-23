@@ -1,4 +1,5 @@
 import { config } from "dotenv";
+import { eq } from "drizzle-orm";
 import slugify from "slugify";
 
 config({ path: ".env.local" });
@@ -37,6 +38,27 @@ async function main() {
 	const userC = existingUsers[2] ?? existingUsers[0];
 
 	await resetSeedData();
+
+	console.log("Assigning roles to seeded users...");
+
+	await db
+		.update(users)
+		.set({ role: "Admin", updatedAt: new Date() })
+		.where(eq(users.id, userA.id));
+
+	if (userB.id !== userA.id) {
+		await db
+			.update(users)
+			.set({ role: "Member", updatedAt: new Date() })
+			.where(eq(users.id, userB.id));
+	}
+
+	if (userC.id !== userA.id && userC.id !== userB.id) {
+		await db
+			.update(users)
+			.set({ role: "Member", updatedAt: new Date() })
+			.where(eq(users.id, userC.id));
+	}
 
 	const [projectAlpha, projectBeta] = await db
 		.insert(projects)
@@ -100,15 +122,17 @@ async function main() {
 				priority: "medium",
 				status: "In Progress",
 				position: 0,
+				dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
 			},
 			{
 				title: "Migrate legacy blog posts",
-				description: null,
+				description: "Move all posts from the old CMS and set up redirects",
 				listId: doneList.id,
 				assigneeId: userA.id,
 				priority: "low",
 				status: "Done",
 				position: 0,
+				dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
 			},
 			{
 				title: "Define app onboarding flow",
@@ -118,6 +142,7 @@ async function main() {
 				priority: "medium",
 				status: "To Do",
 				position: 0,
+				dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
 			},
 		])
 		.returning();

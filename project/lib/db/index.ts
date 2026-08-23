@@ -44,7 +44,7 @@ import { generateUniqueProjectSlug } from "./slug";
 
 // Placeholder exports to prevent import errors
 
-type NewProject = typeof projects.$inferInsert;
+type NewProject = Omit<typeof projects.$inferInsert, "slug">;
 type UpdateProject = Partial<typeof projects.$inferInsert>;
 type NewTask = typeof tasks.$inferInsert;
 type UpdateTask = Partial<typeof tasks.$inferInsert>;
@@ -63,6 +63,8 @@ export const queries = {
 					status: projects.status,
 					color: projects.color,
 					dueDate: projects.dueDate,
+					ownerId: projects.ownerId,
+					ownerName: users.name,
 					memberCount:
 						sql<number>`count(distinct ${projectMembers.userId})`.mapWith(
 							Number,
@@ -74,10 +76,11 @@ export const queries = {
 						),
 				})
 				.from(projects)
+				.innerJoin(users, eq(users.id, projects.ownerId))
 				.leftJoin(projectMembers, eq(projectMembers.projectId, projects.id))
 				.leftJoin(lists, eq(lists.projectId, projects.id))
 				.leftJoin(tasks, eq(tasks.listId, lists.id))
-				.groupBy(projects.id);
+				.groupBy(projects.id, users.id);
 
 			return rows.map((p) => ({
 				...p,
@@ -93,11 +96,24 @@ export const queries = {
 			return project ?? null;
 		},
 		getBySlug: async (slug: string) => {
-			const [project] = await db
-				.select()
+			const [row] = await db
+				.select({
+					id: projects.id,
+					name: projects.name,
+					slug: projects.slug,
+					description: projects.description,
+					status: projects.status,
+					color: projects.color,
+					dueDate: projects.dueDate,
+					ownerId: projects.ownerId,
+					ownerName: users.name,
+					createdAt: projects.createdAt,
+					updatedAt: projects.updatedAt,
+				})
 				.from(projects)
+				.innerJoin(users, eq(users.id, projects.ownerId))
 				.where(eq(projects.slug, slug));
-			return project ?? null;
+			return row ?? null;
 		},
 		create: async (data: NewProject) => {
 			const slug = await generateUniqueProjectSlug(data.name);

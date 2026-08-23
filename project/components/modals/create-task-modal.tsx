@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { X } from "lucide-react";
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
@@ -33,6 +34,8 @@ export function CreateTaskModal({
 	onClose,
 }: CreateTaskModalProps) {
 	const createTask = useBoardStore((state) => state.createTask);
+	const { user } = useUser();
+	const assigneeName = user?.fullName ?? user?.username ?? null;
 
 	const [state, formAction] = useActionState(
 		async (
@@ -49,6 +52,7 @@ export function CreateTaskModal({
 				description: (formData.get("description") as string) || undefined,
 				priority,
 				dueDate: (formData.get("dueDate") as string) || undefined,
+				assigneeName,
 			});
 		},
 		initialState,

@@ -14,6 +14,7 @@ interface CreateTaskInput {
 	description?: string;
 	priority: "low" | "medium" | "high";
 	dueDate?: string;
+	assigneeName?: string | null;
 }
 
 interface BoardState {
@@ -80,7 +81,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 			description: input.description ?? null,
 			listId: input.listId,
 			assigneeId: null,
-			assigneeName: null,
+			assigneeName: input.assigneeName ?? null,
 			priority: input.priority,
 			status: "To Do",
 			dueDate: input.dueDate ? new Date(input.dueDate) : null,
@@ -120,7 +121,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 					? ({
 							...task,
 							...result.task,
-							assigneeName: null,
+							assigneeName: result.task?.assigneeName ?? task.assigneeName,
 						} as KanbanTask)
 					: task,
 			),
