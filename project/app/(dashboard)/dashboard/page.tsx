@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import {
 	type DashboardStat,
 	DashboardStats,
@@ -21,9 +22,18 @@ function formatDueDate(date: Date | null) {
 }
 
 export default async function DashboardPage() {
-	const [projects, users] = await Promise.all([
-		queries.projects.getAll(),
-		queries.users.getAll(),
+	const { userId: clerkId } = await auth();
+	const currentUser = clerkId
+		? await queries.users.getByClerkId(clerkId)
+		: null;
+
+	if (!currentUser) {
+		throw new Error("User record not found for authenticated session");
+	}
+
+	const [projects, teammates] = await Promise.all([
+		queries.projects.getAllForUser(currentUser.id),
+		queries.users.getTeammates(currentUser.id),
 	]);
 
 	const activeProjects = projects.filter((p) => p.status !== "Done").length;
@@ -35,7 +45,7 @@ export default async function DashboardPage() {
 
 	const stats: DashboardStat[] = [
 		{ name: "Active Projects", value: activeProjects, icon: "projects" },
-		{ name: "Team Members", value: users.length, icon: "team" },
+		{ name: "Team Members", value: teammates.length, icon: "team" },
 		{ name: "Completed Tasks", value: completedTasks, icon: "completed" },
 		{ name: "Pending Tasks", value: pendingTasks, icon: "pending" },
 	];
