@@ -37,19 +37,20 @@ export const queries = {
 }
 */
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
 import { lists, projectMembers, projects, tasks, users } from "./schema";
 import { generateUniqueProjectSlug } from "./slug";
 
-// Placeholder exports to prevent import errors
-
 type NewProject = Omit<typeof projects.$inferInsert, "slug">;
 type UpdateProject = Partial<typeof projects.$inferInsert>;
+type NewList = typeof lists.$inferInsert;
 type NewTask = typeof tasks.$inferInsert;
 type UpdateTask = Partial<typeof tasks.$inferInsert>;
 type NewUser = typeof users.$inferInsert;
 type UpdateUser = Partial<typeof users.$inferInsert>;
+
+const DEFAULT_LIST_NAMES = ["To Do", "In Progress", "Review", "Done"];
 
 export const queries = {
 	projects: {
@@ -121,10 +122,14 @@ export const queries = {
 				.insert(projects)
 				.values({ ...data, slug })
 				.returning();
+
+			if (project) {
+				await queries.lists.createDefaultsForProject(project.id);
+			}
+
 			return project;
 		},
 		update: async (id: string, data: UpdateProject) => {
-			// If name changes, regenerate slug — otherwise leave existing URLs stable
 			const updates: UpdateProject = { ...data, updatedAt: new Date() };
 			if (data.name) {
 				updates.slug = await generateUniqueProjectSlug(data.name);
@@ -141,12 +146,32 @@ export const queries = {
 		},
 	},
 	lists: {
+		getById: async (id: string) => {
+			const [list] = await db.select().from(lists).where(eq(lists.id, id));
+			return list ?? null;
+		},
 		getByProject: async (projectId: string) => {
 			return await db
 				.select()
 				.from(lists)
 				.where(eq(lists.projectId, projectId))
 				.orderBy(lists.position);
+		},
+		create: async (data: NewList) => {
+			const [list] = await db.insert(lists).values(data).returning();
+			return list;
+		},
+		createDefaultsForProject: async (projectId: string) => {
+			return await db
+				.insert(lists)
+				.values(
+					DEFAULT_LIST_NAMES.map((name, position) => ({
+						name,
+						projectId,
+						position,
+					})),
+				)
+				.returning();
 		},
 	},
 	tasks: {
@@ -195,6 +220,47 @@ export const queries = {
 		},
 		delete: async (id: string) => {
 			await db.delete(tasks).where(eq(tasks.id, id));
+		},
+		reorder: async (listId: string, orderedIds: string[]) => {
+			await Promise.all(
+				orderedIds.map((id, index) =>
+					db
+						.update(tasks)
+						.set({ position: index, updatedAt: new Date() })
+						.where(and(eq(tasks.id, id), eq(tasks.listId, listId))),
+				),
+			);
+		},
+		move: async ({
+			taskId,
+			destinationListId,
+			sourceOrderedIds,
+			destinationOrderedIds,
+		}: {
+			taskId: string;
+			destinationListId: string;
+			sourceOrderedIds: string[];
+			destinationOrderedIds: string[];
+		}) => {
+			await db
+				.update(tasks)
+				.set({ listId: destinationListId, updatedAt: new Date() })
+				.where(eq(tasks.id, taskId));
+
+			await Promise.all([
+				...destinationOrderedIds.map((id, index) =>
+					db
+						.update(tasks)
+						.set({ position: index, updatedAt: new Date() })
+						.where(eq(tasks.id, id)),
+				),
+				...sourceOrderedIds.map((id, index) =>
+					db
+						.update(tasks)
+						.set({ position: index, updatedAt: new Date() })
+						.where(eq(tasks.id, id)),
+				),
+			]);
 		},
 	},
 	users: {

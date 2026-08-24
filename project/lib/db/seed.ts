@@ -91,15 +91,33 @@ async function main() {
 		{ projectId: projectBeta.id, userId: userC.id },
 	]);
 
-	const [todoList, inProgressList, doneList, backlogList] = await db
+	const [
+		todoAlpha,
+		inProgressAlpha,
+		reviewAlpha,
+		doneAlpha,
+		todoBeta,
+		inProgressBeta,
+		reviewBeta,
+		doneBeta,
+	] = await db
 		.insert(lists)
 		.values([
 			{ name: "To Do", projectId: projectAlpha.id, position: 0 },
 			{ name: "In Progress", projectId: projectAlpha.id, position: 1 },
-			{ name: "Done", projectId: projectAlpha.id, position: 2 },
-			{ name: "Backlog", projectId: projectBeta.id, position: 0 },
+			{ name: "Review", projectId: projectAlpha.id, position: 2 },
+			{ name: "Done", projectId: projectAlpha.id, position: 3 },
+			{ name: "To Do", projectId: projectBeta.id, position: 0 },
+			{ name: "In Progress", projectId: projectBeta.id, position: 1 },
+			{ name: "Review", projectId: projectBeta.id, position: 2 },
+			{ name: "Done", projectId: projectBeta.id, position: 3 },
 		])
 		.returning();
+
+	void reviewAlpha;
+	void inProgressBeta;
+	void reviewBeta;
+	void doneBeta;
 
 	const [taskOne, taskTwo, taskThree, taskFour] = await db
 		.insert(tasks)
@@ -107,7 +125,7 @@ async function main() {
 			{
 				title: "Design new homepage hero",
 				description: "Explore 3 concepts and present to stakeholders",
-				listId: todoList.id,
+				listId: todoAlpha.id,
 				assigneeId: userA.id,
 				priority: "high",
 				status: "To Do",
@@ -117,7 +135,7 @@ async function main() {
 			{
 				title: "Set up CI/CD pipeline",
 				description: "Automate build and deploy on merge to main",
-				listId: inProgressList.id,
+				listId: inProgressAlpha.id,
 				assigneeId: userB.id,
 				priority: "medium",
 				status: "In Progress",
@@ -127,7 +145,7 @@ async function main() {
 			{
 				title: "Migrate legacy blog posts",
 				description: "Move all posts from the old CMS and set up redirects",
-				listId: doneList.id,
+				listId: doneAlpha.id,
 				assigneeId: userA.id,
 				priority: "low",
 				status: "Done",
@@ -137,7 +155,7 @@ async function main() {
 			{
 				title: "Define app onboarding flow",
 				description: "Wireframe the first-run experience",
-				listId: backlogList.id,
+				listId: todoBeta.id,
 				assigneeId: userC.id,
 				priority: "medium",
 				status: "To Do",
@@ -171,7 +189,7 @@ async function main() {
 	]);
 
 	console.log("Seeding complete.");
-	console.log(`Created ${2} projects, ${4} lists, ${4} tasks, ${4} comments.`);
+	console.log(`Created ${2} projects, ${8} lists, ${4} tasks, ${4} comments.`);
 }
 
 main()

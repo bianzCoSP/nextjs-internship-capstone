@@ -6,6 +6,8 @@ import { z } from "zod";
 import { queries } from "@/lib/db";
 import { taskSchema } from "@/lib/validations";
 
+const LIST_NAME_TO_STATUS = new Set(["To Do", "In Progress", "Review", "Done"]);
+
 export type CreateTaskState = {
 	success: boolean;
 	errors?: Record<string, string[] | undefined>;
@@ -69,6 +71,74 @@ export async function createTask(
 	if (projectSlug) {
 		revalidatePath(`/projects/${projectSlug}`);
 	}
+	revalidatePath("/projects");
 
 	return { success: true, task: { ...task, assigneeName: user.name } };
+}
+
+export type MoveTaskState = {
+	success: boolean;
+	error?: string;
+};
+
+export type MoveTaskInput = {
+	taskId: string;
+	sourceListId: string;
+	destinationListId: string;
+	sourceOrderedIds: string[];
+	destinationOrderedIds: string[];
+	projectSlug?: string;
+};
+
+export async function moveTask(input: MoveTaskInput): Promise<MoveTaskState> {
+	const { userId: clerkId } = await auth();
+	if (!clerkId) {
+		return { success: false, error: "Not signed in" };
+	}
+
+	const {
+		taskId,
+		sourceListId,
+		destinationListId,
+		sourceOrderedIds,
+		destinationOrderedIds,
+		projectSlug,
+	} = input;
+
+	if (!taskId || !destinationListId || destinationOrderedIds.length === 0) {
+		return { success: false, error: "Missing task or list" };
+	}
+
+	try {
+		if (sourceListId === destinationListId) {
+			await queries.tasks.reorder(destinationListId, destinationOrderedIds);
+		} else {
+			await queries.tasks.move({
+				taskId,
+				destinationListId,
+				sourceOrderedIds,
+				destinationOrderedIds,
+			});
+
+			const destinationList = await queries.lists.getById(destinationListId);
+			if (destinationList && LIST_NAME_TO_STATUS.has(destinationList.name)) {
+				await queries.tasks.update(taskId, {
+					status: destinationList.name as
+						| "To Do"
+						| "In Progress"
+						| "Review"
+						| "Done",
+				});
+			}
+		}
+	} catch {
+		return { success: false, error: "Failed to move task" };
+	}
+
+	if (projectSlug) {
+		revalidatePath(`/projects/${projectSlug}`);
+	}
+	revalidatePath("/projects");
+
+	return { success: true };
 }

@@ -5,6 +5,7 @@ import type { KanbanList, KanbanTask } from "@/components/kanban-board";
 import {
 	type CreateTaskState,
 	createTask as createTaskAction,
+	moveTask as moveTaskAction,
 } from "@/lib/actions/task-actions";
 
 interface CreateTaskInput {
@@ -41,16 +42,82 @@ interface BoardState {
 	updateTaskLocal: (taskId: string, updates: Partial<KanbanTask>) => void;
 	removeTaskLocal: (taskId: string) => void;
 
-	// TODO: change this to server action version with dnd-kit/core
 	moveTaskLocal: (
 		taskId: string,
 		newListId: string,
 		newPosition: number,
 	) => void;
 
+	moveTask: (
+		taskId: string,
+		destinationListId: string,
+		destinationIndex: number,
+	) => Promise<void>;
+
 	setDraggedTask: (taskId: string | null) => void;
 	setDraggedOverList: (listId: string | null) => void;
 	clearError: () => void;
+}
+
+function moveTaskInTasks(
+	tasks: KanbanTask[],
+	taskId: string,
+	destListId: string,
+	destIndex: number,
+): KanbanTask[] {
+	const moving = tasks.find((task) => task.id === taskId);
+	if (!moving) return tasks;
+
+	const sourceListId = moving.listId;
+	const rest = tasks.filter((task) => task.id !== taskId);
+
+	const destTasks = rest
+		.filter((task) => task.listId === destListId)
+		.sort((a, b) => a.position - b.position);
+
+	const clampedIndex = Math.max(0, Math.min(destIndex, destTasks.length));
+	destTasks.splice(clampedIndex, 0, { ...moving, listId: destListId });
+	const destPositions = new Map(
+		destTasks.map((task, index) => [task.id, index]),
+	);
+
+	let sourcePositions: Map<string, number> | null = null;
+	if (sourceListId !== destListId) {
+		const sourceTasks = rest
+			.filter((task) => task.listId === sourceListId)
+			.sort((a, b) => a.position - b.position);
+		sourcePositions = new Map(
+			sourceTasks.map((task, index) => [task.id, index]),
+		);
+	}
+
+	return tasks.map((task) => {
+		if (task.id === taskId) {
+			return {
+				...task,
+				listId: destListId,
+				position: destPositions.get(taskId) ?? clampedIndex,
+			};
+		}
+		if (task.listId === destListId) {
+			const destPosition = destPositions.get(task.id);
+			if (destPosition !== undefined) {
+				return { ...task, position: destPosition };
+			}
+		}
+		const sourcePosition = sourcePositions?.get(task.id);
+		if (sourcePosition !== undefined) {
+			return { ...task, position: sourcePosition };
+		}
+		return task;
+	});
+}
+
+function orderedIdsForList(tasks: KanbanTask[], listId: string) {
+	return tasks
+		.filter((task) => task.listId === listId)
+		.sort((a, b) => a.position - b.position)
+		.map((task) => task.id);
 }
 
 export const useBoardStore = create<BoardState>((set, get) => ({
@@ -145,12 +212,52 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
 	moveTaskLocal: (taskId, newListId, newPosition) =>
 		set((state) => ({
-			tasks: state.tasks.map((task) =>
-				task.id === taskId
-					? { ...task, listId: newListId, position: newPosition }
-					: task,
-			),
+			tasks: moveTaskInTasks(state.tasks, taskId, newListId, newPosition),
 		})),
+
+	moveTask: async (taskId, destinationListId, destinationIndex) => {
+		const previousTasks = get().tasks;
+		const movingTask = previousTasks.find((task) => task.id === taskId);
+		if (!movingTask) return;
+
+		const sourceListId = movingTask.listId;
+
+		set((state) => ({
+			tasks: moveTaskInTasks(
+				state.tasks,
+				taskId,
+				destinationListId,
+				destinationIndex,
+			),
+			error: null,
+		}));
+
+		const nextTasks = get().tasks;
+		const destinationOrderedIds = orderedIdsForList(
+			nextTasks,
+			destinationListId,
+		);
+		const sourceOrderedIds =
+			sourceListId === destinationListId
+				? destinationOrderedIds
+				: orderedIdsForList(nextTasks, sourceListId);
+
+		const result = await moveTaskAction({
+			taskId,
+			sourceListId,
+			destinationListId,
+			sourceOrderedIds,
+			destinationOrderedIds,
+			projectSlug: get().projectSlug ?? undefined,
+		});
+
+		if (!result.success) {
+			set({
+				tasks: previousTasks,
+				error: result.error ?? "Failed to move task",
+			});
+		}
+	},
 
 	setDraggedTask: (taskId) => set({ draggedTaskId: taskId }),
 	setDraggedOverList: (listId) => set({ draggedOverListId: listId }),
