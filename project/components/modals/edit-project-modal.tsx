@@ -3,7 +3,7 @@
 import { Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { createPortal, useFormStatus } from "react-dom";
 import {
 	deleteProject,
 	type UpdateProjectState,
@@ -46,7 +46,7 @@ function formatDateInputValue(value?: Date | string | null) {
 export function EditProjectModal({
 	project,
 	onClose,
-	navigateOnRename = true,
+	navigateOnRename = false,
 }: EditProjectModalProps) {
 	const router = useRouter();
 
@@ -81,9 +81,14 @@ export function EditProjectModal({
 		}
 	}
 
-	return (
+	return createPortal(
 		<>
-			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: not interactive, only stops click bubbling into the card's Link */}
+			{/* biome-ignore lint/a11y/useKeyWithClickEvents: no action is triggered, so there's no keyboard equivalent needed */}
+			<div
+				className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+				onClick={(e) => e.stopPropagation()}
+			>
 				<div className="bg-white dark:bg-outer_space-500 rounded-lg p-6 w-full max-w-md mx-4">
 					<div className="flex items-center justify-between mb-4">
 						<h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500">
@@ -175,7 +180,12 @@ export function EditProjectModal({
 			</div>
 
 			{isConfirmingDelete && (
-				<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+				// biome-ignore lint/a11y/noStaticElementInteractions: not interactive, only stops click bubbling into the card's Link
+				// biome-ignore lint/a11y/useKeyWithClickEvents: no action is triggered, so there's no keyboard equivalent needed
+				<div
+					className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+					onClick={(e) => e.stopPropagation()}
+				>
 					<div className="bg-white dark:bg-outer_space-500 rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl border border-gray-100 dark:border-gray-800 space-y-4">
 						<h4 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500">
 							Delete Project?
@@ -211,6 +221,7 @@ export function EditProjectModal({
 					</div>
 				</div>
 			)}
-		</>
+		</>,
+		document.body,
 	);
 }
