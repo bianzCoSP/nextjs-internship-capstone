@@ -1,4 +1,4 @@
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
 import {
 	comments,
@@ -281,6 +281,35 @@ export const queries = {
 				.from(users)
 				.where(eq(users.clerkId, clerkId));
 			return user ?? null;
+		},
+		getTeammates: async (userId: string) => {
+			const memberProjectIds = db
+				.select({ projectId: projectMembers.projectId })
+				.from(projectMembers)
+				.where(eq(projectMembers.userId, userId));
+
+			const rows = await db
+				.select({
+					id: users.id,
+					name: users.name,
+					email: users.email,
+					role: users.role,
+					sharedProjectCount:
+						sql<number>`count(distinct ${projectMembers.projectId})`.mapWith(
+							Number,
+						),
+				})
+				.from(projectMembers)
+				.innerJoin(users, eq(users.id, projectMembers.userId))
+				.where(
+					and(
+						inArray(projectMembers.projectId, memberProjectIds),
+						ne(projectMembers.userId, userId),
+					),
+				)
+				.groupBy(users.id);
+
+			return rows.sort((a, b) => b.sharedProjectCount - a.sharedProjectCount);
 		},
 		create: async (data: NewUser) => {
 			const [user] = await db.insert(users).values(data).returning();
