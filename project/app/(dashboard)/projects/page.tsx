@@ -1,10 +1,18 @@
+import { auth } from "@clerk/nextjs/server";
 import { Filter, Search } from "lucide-react";
 import { CreateProjectButton } from "@/components/create-project-button";
 import { ProjectGrid } from "@/components/project-grid";
 import { queries } from "@/lib/db/index";
 
 export default async function ProjectsPage() {
-	const projects = await queries.projects.getAll();
+	const { userId: clerkId } = await auth();
+	const user = clerkId ? await queries.users.getByClerkId(clerkId) : null;
+
+	if (!user) {
+		throw new Error("User record not found for authenticated session");
+	}
+
+	const projects = await queries.projects.getAllForUser(user.id);
 
 	return (
 		<div className="space-y-6">

@@ -58,6 +58,48 @@ export const queries = {
 					p.totalTasks > 0 ? Math.round((p.doneTasks / p.totalTasks) * 100) : 0,
 			}));
 		},
+		getAllForUser: async (userId: string) => {
+			const memberProjectIds = db
+				.select({ projectId: projectMembers.projectId })
+				.from(projectMembers)
+				.where(eq(projectMembers.userId, userId));
+
+			const rows = await db
+				.select({
+					id: projects.id,
+					name: projects.name,
+					slug: projects.slug,
+					description: projects.description,
+					status: projects.status,
+					color: projects.color,
+					dueDate: projects.dueDate,
+					ownerId: projects.ownerId,
+					ownerName: users.name,
+					updatedAt: projects.updatedAt,
+					memberCount:
+						sql<number>`count(distinct ${projectMembers.userId})`.mapWith(
+							Number,
+						),
+					totalTasks: sql<number>`count(distinct ${tasks.id})`.mapWith(Number),
+					doneTasks:
+						sql<number>`count(distinct case when ${tasks.status} = 'Done' then ${tasks.id} end)`.mapWith(
+							Number,
+						),
+				})
+				.from(projects)
+				.innerJoin(users, eq(users.id, projects.ownerId))
+				.leftJoin(projectMembers, eq(projectMembers.projectId, projects.id))
+				.leftJoin(lists, eq(lists.projectId, projects.id))
+				.leftJoin(tasks, eq(tasks.listId, lists.id))
+				.where(inArray(projects.id, memberProjectIds))
+				.groupBy(projects.id, users.id);
+
+			return rows.map((p) => ({
+				...p,
+				progress:
+					p.totalTasks > 0 ? Math.round((p.doneTasks / p.totalTasks) * 100) : 0,
+			}));
+		},
 		getById: async (id: string) => {
 			const [project] = await db
 				.select()
