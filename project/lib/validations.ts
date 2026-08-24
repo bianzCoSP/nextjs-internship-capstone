@@ -11,18 +11,19 @@ export const projectSchema = z.object({
 	description: z.string().max(500, "Description too long").optional(),
 	dueDate: z
 		.date()
-		.refine(isNotInPast, { message: "Due date can't be in the past" })
-		.optional(),
+		.refine(isNotInPast, { message: "Due date can't be in the past" }),
 });
 
 export const taskSchema = z.object({
 	title: z.string().min(1, "Title is required").max(200, "Title too long"),
-	description: z.string().max(1000, "Description too long").optional(),
+	description: z
+		.string({ message: "Description is required" })
+		.min(1, "Description is required")
+		.max(1000, "Description too long"),
 	priority: z.enum(["low", "medium", "high"]),
 	dueDate: z
-		.date()
-		.refine(isNotInPast, { message: "Due date can't be in the past" })
-		.optional(),
+		.date({ message: "Due date is required" })
+		.refine(isNotInPast, { message: "Due date can't be in the past" }),
 	assigneeId: z.string().optional(),
 });
 

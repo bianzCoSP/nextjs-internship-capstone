@@ -1,45 +1,13 @@
-// TODO: Task 3.2 - Configure PostgreSQL database (Vercel Postgres or Neon)
-// TODO: Task 3.5 - Implement database connection and query utilities
-
-/*
-TODO: Implementation Notes for Interns:
-
-1. Choose database provider:
-   - Vercel Postgres (recommended for Vercel deployment)
-   - Neon (good alternative)
-   - Local PostgreSQL for development
-
-2. Set up environment variables:
-   - DATABASE_URL
-   - POSTGRES_URL (if using Vercel Postgres)
-
-3. Configure Drizzle connection
-4. Implement CRUD operations for all entities
-5. Add proper error handling
-6. Set up connection pooling if needed
-
-Example structure:
-import { drizzle } from 'drizzle-orm/vercel-postgres'
-import { sql } from '@vercel/postgres'
-import * as schema from './schema'
-
-export const db = drizzle(sql, { schema })
-
-export const queries = {
-  projects: {
-    getAll: async () => { ... },
-    getById: async (id: string) => { ... },
-    create: async (data: any) => { ... },
-    update: async (id: string, data: any) => { ... },
-    delete: async (id: string) => { ... },
-  },
-  // ... other entity queries
-}
-*/
-
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
-import { lists, projectMembers, projects, tasks, users } from "./schema";
+import {
+	comments,
+	lists,
+	projectMembers,
+	projects,
+	tasks,
+	users,
+} from "./schema";
 import { generateUniqueProjectSlug } from "./slug";
 
 type NewProject = Omit<typeof projects.$inferInsert, "slug">;
@@ -66,6 +34,7 @@ export const queries = {
 					dueDate: projects.dueDate,
 					ownerId: projects.ownerId,
 					ownerName: users.name,
+					updatedAt: projects.updatedAt,
 					memberCount:
 						sql<number>`count(distinct ${projectMembers.userId})`.mapWith(
 							Number,
@@ -124,6 +93,11 @@ export const queries = {
 				.returning();
 
 			if (project) {
+				await db.insert(projectMembers).values({
+					projectId: project.id,
+					userId: project.ownerId,
+				});
+
 				await queries.lists.createDefaultsForProject(project.id);
 			}
 
@@ -131,9 +105,20 @@ export const queries = {
 		},
 		update: async (id: string, data: UpdateProject) => {
 			const updates: UpdateProject = { ...data, updatedAt: new Date() };
+
 			if (data.name) {
-				updates.slug = await generateUniqueProjectSlug(data.name);
+				const [current] = await db
+					.select({ name: projects.name, slug: projects.slug })
+					.from(projects)
+					.where(eq(projects.id, id));
+
+				if (current && current.name !== data.name) {
+					updates.slug = await generateUniqueProjectSlug(data.name);
+				} else if (current) {
+					updates.slug = current.slug;
+				}
 			}
+
 			const [project] = await db
 				.update(projects)
 				.set(updates)
@@ -142,6 +127,28 @@ export const queries = {
 			return project ?? null;
 		},
 		delete: async (id: string) => {
+			const projectLists = await db
+				.select({ id: lists.id })
+				.from(lists)
+				.where(eq(lists.projectId, id));
+			const listIds = projectLists.map((l) => l.id);
+
+			if (listIds.length > 0) {
+				const projectTasks = await db
+					.select({ id: tasks.id })
+					.from(tasks)
+					.where(inArray(tasks.listId, listIds));
+				const taskIds = projectTasks.map((t) => t.id);
+
+				if (taskIds.length > 0) {
+					await db.delete(comments).where(inArray(comments.taskId, taskIds));
+					await db.delete(tasks).where(inArray(tasks.listId, listIds));
+				}
+
+				await db.delete(lists).where(eq(lists.projectId, id));
+			}
+
+			await db.delete(projectMembers).where(eq(projectMembers.projectId, id));
 			await db.delete(projects).where(eq(projects.id, id));
 		},
 	},
@@ -219,6 +226,7 @@ export const queries = {
 			return task ?? null;
 		},
 		delete: async (id: string) => {
+			await db.delete(comments).where(eq(comments.taskId, id));
 			await db.delete(tasks).where(eq(tasks.id, id));
 		},
 		reorder: async (listId: string, orderedIds: string[]) => {
@@ -264,6 +272,9 @@ export const queries = {
 		},
 	},
 	users: {
+		getAll: async () => {
+			return await db.select().from(users);
+		},
 		getByClerkId: async (clerkId: string) => {
 			const [user] = await db
 				.select()

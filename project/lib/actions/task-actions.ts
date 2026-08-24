@@ -37,9 +37,14 @@ export async function createTask(
 		return { success: false, errors: { _form: ["User not found"] } };
 	}
 
+	const list = await queries.lists.getById(listId);
+	if (!list) {
+		return { success: false, errors: { _form: ["List not found"] } };
+	}
+
 	const rawData = {
 		title: formData.get("title") as string,
-		description: (formData.get("description") as string) || undefined,
+		description: (formData.get("description") as string) ?? "",
 		priority: (formData.get("priority") as string) || "medium",
 		dueDate: formData.get("dueDate")
 			? new Date(formData.get("dueDate") as string)
@@ -60,11 +65,16 @@ export async function createTask(
 			? Math.max(...existingTasks.map((task) => task.position)) + 1
 			: 0;
 
+	const status = LIST_NAME_TO_STATUS.has(list.name)
+		? (list.name as "To Do" | "In Progress" | "Review" | "Done")
+		: "To Do";
+
 	const task = await queries.tasks.create({
 		...parsedSchema.data,
 		listId,
 		position,
 		assigneeId: user.id,
+		status,
 	});
 
 	const projectSlug = formData.get("projectSlug") as string;
@@ -74,6 +84,95 @@ export async function createTask(
 	revalidatePath("/projects");
 
 	return { success: true, task: { ...task, assigneeName: user.name } };
+}
+
+export type UpdateTaskState = {
+	success: boolean;
+	errors?: Record<string, string[] | undefined>;
+	task?: Awaited<ReturnType<typeof queries.tasks.update>>;
+};
+
+export async function updateTask(
+	taskId: string,
+	projectSlug: string | undefined,
+	_prevState: UpdateTaskState,
+	formData: FormData,
+): Promise<UpdateTaskState> {
+	const { userId: clerkId } = await auth();
+	if (!clerkId) {
+		return { success: false, errors: { _form: ["Not signed in"] } };
+	}
+
+	if (!taskId) {
+		return { success: false, errors: { _form: ["Missing task"] } };
+	}
+
+	const rawData = {
+		title: formData.get("title") as string,
+		description: (formData.get("description") as string) || undefined,
+		priority: (formData.get("priority") as string) || "medium",
+		dueDate: formData.get("dueDate")
+			? new Date(formData.get("dueDate") as string)
+			: undefined,
+	};
+
+	const parsedSchema = createTaskSchema.safeParse(rawData);
+	if (!parsedSchema.success) {
+		return {
+			success: false,
+			errors: z.flattenError(parsedSchema.error).fieldErrors,
+		};
+	}
+
+	const updates = Object.fromEntries(
+		Object.entries(parsedSchema.data).filter(
+			([, value]) => value !== undefined,
+		),
+	);
+
+	const task = await queries.tasks.update(taskId, updates);
+	if (!task) {
+		return { success: false, errors: { _form: ["Task not found"] } };
+	}
+
+	if (projectSlug) {
+		revalidatePath(`/projects/${projectSlug}`);
+	}
+	revalidatePath("/projects");
+
+	return { success: true, task };
+}
+
+export type DeleteTaskState = {
+	success: boolean;
+	error?: string;
+};
+
+export async function deleteTask(
+	taskId: string,
+	projectSlug?: string,
+): Promise<DeleteTaskState> {
+	const { userId: clerkId } = await auth();
+	if (!clerkId) {
+		return { success: false, error: "Not signed in" };
+	}
+
+	if (!taskId) {
+		return { success: false, error: "Missing task" };
+	}
+
+	try {
+		await queries.tasks.delete(taskId);
+	} catch {
+		return { success: false, error: "Failed to delete task" };
+	}
+
+	if (projectSlug) {
+		revalidatePath(`/projects/${projectSlug}`);
+	}
+	revalidatePath("/projects");
+
+	return { success: true };
 }
 
 export type MoveTaskState = {
