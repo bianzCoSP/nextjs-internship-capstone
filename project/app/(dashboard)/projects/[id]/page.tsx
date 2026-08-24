@@ -1,13 +1,8 @@
-import {
-	ArrowLeft,
-	Calendar,
-	MoreHorizontal,
-	Settings,
-	Users,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { KanbanBoard } from "@/components/kanban-board";
+import { ProjectSettingsButton } from "@/components/project-settings-button";
 import { queries } from "@/lib/db/index";
 
 export default async function ProjectPage({
@@ -55,30 +50,14 @@ export default async function ProjectPage({
 				</div>
 
 				<div className="flex items-center space-x-2">
-					<button
-						type="button"
-						className="p-2 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400 rounded-lg transition-colors"
-					>
-						<Users size={20} />
-					</button>
-					<button
-						type="button"
-						className="p-2 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400 rounded-lg transition-colors"
-					>
-						<Calendar size={20} />
-					</button>
-					<button
-						type="button"
-						className="p-2 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400 rounded-lg transition-colors"
-					>
-						<Settings size={20} />
-					</button>
-					<button
-						type="button"
-						className="p-2 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400 rounded-lg transition-colors"
-					>
-						<MoreHorizontal size={20} />
-					</button>
+					<ProjectSettingsButton
+						project={{
+							id: project.id,
+							name: project.name,
+							description: project.description,
+							dueDate: project.dueDate,
+						}}
+					/>
 				</div>
 			</div>
 

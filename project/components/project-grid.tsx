@@ -19,14 +19,6 @@ interface ProjectGridProps {
 }
 
 export function ProjectGrid({ projects }: ProjectGridProps) {
-	const handleEdit = (id: string) => {
-		// TODO: open edit modal / navigate to edit route
-	};
-
-	const handleDelete = (id: string) => {
-		// TODO: confirm + call delete server action
-	};
-
 	if (projects.length === 0) {
 		return (
 			<div className="text-center py-12 text-paynes_gray-500 dark:text-french_gray-400">
@@ -47,14 +39,10 @@ export function ProjectGrid({ projects }: ProjectGridProps) {
 						description: project.description ?? undefined,
 						progress: project.progress,
 						memberCount: project.memberCount,
-						dueDate: project.dueDate
-							? new Date(project.dueDate).toLocaleDateString()
-							: undefined,
+						dueDate: project.dueDate,
 						status: project.status,
 						color: project.color,
 					}}
-					onEdit={handleEdit}
-					onDelete={handleDelete}
 				/>
 			))}
 		</div>

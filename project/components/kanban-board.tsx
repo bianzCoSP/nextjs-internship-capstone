@@ -19,12 +19,12 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { MoreHorizontal } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { useBoardStore } from "@/stores/board-store";
 import { useUIStore } from "@/stores/ui-store";
 import { CreateTaskButton } from "./create-task-button";
 import { CreateTaskModal } from "./modals/create-task-modal";
+import { EditTaskModal } from "./modals/edit-task-modal";
 import { TaskCard, type TaskCardTask } from "./task-card";
 
 export interface KanbanList {
@@ -64,6 +64,8 @@ function SortableTaskCard({ task }: { task: KanbanTask }) {
 		isDragging,
 	} = useSortable({ id: task.id, data: { type: "task", listId: task.listId } });
 
+	const openEditTaskModal = useUIStore((state) => state.openEditTaskModal);
+
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
@@ -79,7 +81,7 @@ function SortableTaskCard({ task }: { task: KanbanTask }) {
 			{...attributes}
 			{...listeners}
 		>
-			<TaskCard task={task} />
+			<TaskCard task={task} onEditClick={openEditTaskModal} />
 		</div>
 	);
 }
@@ -107,12 +109,6 @@ function KanbanColumn({
 								{tasks.length}
 							</span>
 						</h3>
-						<button
-							type="button"
-							className="p-1 hover:bg-platinum-500/50 dark:hover:bg-paynes_gray-400/30 rounded"
-						>
-							<MoreHorizontal size={16} />
-						</button>
 					</div>
 				</div>
 
@@ -166,6 +162,13 @@ export function KanbanBoard({
 	const closeCreateTaskModal = useUIStore(
 		(state) => state.closeCreateTaskModal,
 	);
+
+	const isEditTaskModalOpen = useUIStore((state) => state.isEditTaskModalOpen);
+	const editTaskId = useUIStore((state) => state.editTaskId);
+	const closeEditTaskModal = useUIStore((state) => state.closeEditTaskModal);
+	const editingTask = editTaskId
+		? (tasks.find((task) => task.id === editTaskId) ?? null)
+		: null;
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -318,6 +321,10 @@ export function KanbanBoard({
 					projectSlug={projectSlug}
 					onClose={closeCreateTaskModal}
 				/>
+			)}
+
+			{isEditTaskModalOpen && editingTask && (
+				<EditTaskModal task={editingTask} onClose={closeEditTaskModal} />
 			)}
 		</div>
 	);

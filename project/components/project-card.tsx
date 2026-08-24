@@ -1,7 +1,8 @@
 "use client";
 
-import { Calendar, MoreHorizontal, Users } from "lucide-react";
+import { Calendar, Users } from "lucide-react";
 import Link from "next/link";
+import { ProjectSettingsButton } from "@/components/project-settings-button";
 
 interface ProjectCardProps {
 	project: {
@@ -11,12 +12,10 @@ interface ProjectCardProps {
 		description?: string;
 		progress: number;
 		memberCount: number;
-		dueDate?: string;
+		dueDate?: Date | string | null;
 		status: "To Do" | "In Progress" | "Review" | "Done";
 		color?: string;
 	};
-	onEdit?: (id: string) => void;
-	onDelete?: (id: string) => void;
 }
 
 const statusStyles: Record<string, string> = {
@@ -28,8 +27,16 @@ const statusStyles: Record<string, string> = {
 	Done: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
 };
 
-export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
+function formatDueDate(value?: Date | string | null) {
+	if (!value) return undefined;
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return undefined;
+	return date.toLocaleDateString();
+}
+
+export function ProjectCard({ project }: ProjectCardProps) {
 	const color = project.color ?? "bg-blue_munsell-500";
+	const dueDateLabel = formatDueDate(project.dueDate);
 
 	return (
 		<Link
@@ -38,17 +45,15 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
 		>
 			<div className="flex items-start justify-between mb-4">
 				<div className={`w-3 h-3 rounded-full ${color}`} />
-				<button
-					type="button"
-					onClick={(e) => {
-						e.preventDefault();
-						e.stopPropagation();
-						// TODO: add edit delete dropdown
+				<ProjectSettingsButton
+					project={{
+						id: project.id,
+						name: project.name,
+						description: project.description ?? null,
+						dueDate: project.dueDate ?? null,
 					}}
-					className="p-1 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400 rounded"
-				>
-					<MoreHorizontal size={16} />
-				</button>
+					navigateOnRename={false}
+				/>
 			</div>
 
 			<h3 className="text-lg font-semibold text-outer_space-500 dark:text-platinum-500 mb-2">
@@ -64,10 +69,10 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
 					<Users size={16} className="mr-1" />
 					{project.memberCount} members
 				</div>
-				{project.dueDate && (
+				{dueDateLabel && (
 					<div className="flex items-center">
 						<Calendar size={16} className="mr-1" />
-						{project.dueDate}
+						{dueDateLabel}
 					</div>
 				)}
 			</div>

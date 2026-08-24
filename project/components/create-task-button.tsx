@@ -13,7 +13,7 @@ export function CreateTaskButton({ listId }: CreateTaskButtonProps) {
 		<button
 			type="button"
 			onClick={() => openCreateTaskModal(listId)}
-			className="w-full p-3 border-2 border-dashed border-french_gray-300 dark:border-paynes_gray-400 rounded-lg text-paynes_gray-500 dark:text-french_gray-400 hover:border-blue_munsell-500 hover:text-blue_munsell-500 transition-colors inline-flex items-center justify-center"
+			className="w-full p-3 border-2 border-dashed border-french_gray-300 dark:border-paynes_gray-400 rounded-lg text-paynes_gray-500 dark:text-french_gray-400 hover:border-blue_munsell-500 hover:text-blue_munsell-500 dark:hover:border-blue_munsell-500 dark:hover:text-blue_munsell-500 transition-colors inline-flex items-center justify-center"
 		>
 			<Plus size={16} className="mr-1" />
 			Add task

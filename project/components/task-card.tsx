@@ -1,3 +1,6 @@
+import { MoreHorizontal } from "lucide-react";
+import type { KeyboardEvent } from "react";
+
 export interface TaskCardTask {
 	id: string;
 	title: string;
@@ -12,6 +15,7 @@ interface TaskCardProps {
 	task: TaskCardTask;
 	isDragging?: boolean;
 	onClick?: (id: string) => void;
+	onEditClick?: (id: string) => void;
 }
 
 const PRIORITY_STYLES: Record<TaskCardTask["priority"], string> = {
@@ -51,18 +55,51 @@ function formatCreatedDate(createdAt?: Date | string | null) {
 	});
 }
 
-export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
+export function TaskCard({
+	task,
+	isDragging,
+	onClick,
+	onEditClick,
+}: TaskCardProps) {
 	const overdue = isOverdue(task.dueDate);
 
+	const interactiveProps = onClick
+		? {
+				role: "button" as const,
+				tabIndex: 0,
+				onClick: () => onClick(task.id),
+				onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
+					if (event.key === "Enter" || event.key === " ") {
+						event.preventDefault();
+						onClick(task.id);
+					}
+				},
+			}
+		: {};
+
 	return (
-		<button
-			type="button"
-			onClick={() => onClick?.(task.id)}
-			className={`w-full text-left bg-white dark:bg-outer_space-300 p-4 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 hover:shadow-md transition-shadow ${
+		<div
+			{...interactiveProps}
+			className={`relative w-full text-left bg-white dark:bg-outer_space-300 p-4 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 hover:shadow-md transition-shadow ${
 				isDragging ? "opacity-50" : ""
-			}`}
+			} ${onClick ? "cursor-pointer" : ""}`}
 		>
-			<h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-1">
+			{onEditClick ? (
+				<button
+					type="button"
+					aria-label="Task options"
+					onPointerDown={(event) => event.stopPropagation()}
+					onClick={(event) => {
+						event.stopPropagation();
+						onEditClick(task.id);
+					}}
+					className="absolute top-2.5 right-2.5 p-1 rounded hover:bg-platinum-500/60 dark:hover:bg-paynes_gray-400/40 text-paynes_gray-500 dark:text-french_gray-400"
+				>
+					<MoreHorizontal size={14} />
+				</button>
+			) : null}
+
+			<h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-1 pr-6">
 				{task.title}
 			</h4>
 
@@ -112,6 +149,6 @@ export function TaskCard({ task, isDragging, onClick }: TaskCardProps) {
 					) : null}
 				</div>
 			</div>
-		</button>
+		</div>
 	);
 }
