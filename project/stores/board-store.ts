@@ -5,7 +5,11 @@ import type { KanbanList, KanbanTask } from "@/components/kanban-board";
 import {
 	type CreateTaskState,
 	createTask as createTaskAction,
+	type DeleteTaskState,
+	deleteTask as deleteTaskAction,
 	moveTask as moveTaskAction,
+	type UpdateTaskState,
+	updateTask as updateTaskAction,
 } from "@/lib/actions/task-actions";
 
 interface CreateTaskInput {
@@ -16,6 +20,13 @@ interface CreateTaskInput {
 	priority: "low" | "medium" | "high";
 	dueDate?: string;
 	assigneeName?: string | null;
+}
+
+interface UpdateTaskInput {
+	title: string;
+	description?: string;
+	priority: "low" | "medium" | "high";
+	dueDate?: string;
 }
 
 interface BoardState {
@@ -39,6 +50,11 @@ interface BoardState {
 	}) => void;
 
 	createTask: (input: CreateTaskInput) => Promise<CreateTaskState>;
+	updateTask: (
+		taskId: string,
+		input: UpdateTaskInput,
+	) => Promise<UpdateTaskState>;
+	deleteTask: (taskId: string) => Promise<DeleteTaskState>;
 	updateTaskLocal: (taskId: string, updates: Partial<KanbanTask>) => void;
 	removeTaskLocal: (taskId: string) => void;
 
@@ -195,6 +211,84 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 			isSaving: false,
 		}));
 
+		return result;
+	},
+
+	updateTask: async (taskId, input) => {
+		const previousTasks = get().tasks;
+
+		set((state) => ({
+			tasks: state.tasks.map((task) =>
+				task.id === taskId
+					? {
+							...task,
+							title: input.title,
+							description: input.description ?? null,
+							priority: input.priority,
+							dueDate: input.dueDate ? new Date(input.dueDate) : null,
+						}
+					: task,
+			),
+			isSaving: true,
+			error: null,
+		}));
+
+		const formData = new FormData();
+		formData.set("title", input.title);
+		if (input.description) formData.set("description", input.description);
+		formData.set("priority", input.priority);
+		if (input.dueDate) formData.set("dueDate", input.dueDate);
+
+		const result = await updateTaskAction(
+			taskId,
+			get().projectSlug ?? undefined,
+			{ success: false },
+			formData,
+		);
+
+		if (!result.success) {
+			set({
+				tasks: previousTasks,
+				isSaving: false,
+				error: result.errors?._form?.[0] ?? null,
+			});
+			return result;
+		}
+
+		set((state) => ({
+			tasks: state.tasks.map((task) =>
+				task.id === taskId ? ({ ...task, ...result.task } as KanbanTask) : task,
+			),
+			isSaving: false,
+		}));
+
+		return result;
+	},
+
+	deleteTask: async (taskId) => {
+		const previousTasks = get().tasks;
+
+		set((state) => ({
+			tasks: state.tasks.filter((task) => task.id !== taskId),
+			isSaving: true,
+			error: null,
+		}));
+
+		const result = await deleteTaskAction(
+			taskId,
+			get().projectSlug ?? undefined,
+		);
+
+		if (!result.success) {
+			set({
+				tasks: previousTasks,
+				isSaving: false,
+				error: result.error ?? "Failed to delete task",
+			});
+			return result;
+		}
+
+		set({ isSaving: false });
 		return result;
 	},
 
