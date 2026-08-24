@@ -28,9 +28,9 @@ export default async function ProjectPage({
 	]);
 
 	return (
-		<div className="space-y-6">
+		<div className="flex h-full flex-col">
 			{/* Project Header */}
-			<div className="flex items-center justify-between">
+			<div className="shrink-0 flex items-center justify-between pb-6">
 				<div className="flex items-center space-x-4">
 					<Link
 						href="/projects"
@@ -82,12 +82,14 @@ export default async function ProjectPage({
 				</div>
 			</div>
 
-			<KanbanBoard
-				lists={lists}
-				tasks={tasks}
-				projectId={project.id}
-				projectSlug={project.slug}
-			/>
+			<div className="flex-1 min-h-0">
+				<KanbanBoard
+					lists={lists}
+					tasks={tasks}
+					projectId={project.id}
+					projectSlug={project.slug}
+				/>
+			</div>
 		</div>
 	);
 }

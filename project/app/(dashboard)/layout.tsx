@@ -13,10 +13,7 @@ export default async function HomeLayout({
 	return (
 		<ClerkProvider>
 			<DashboardLayout>
-				{/* Page content */}
-				<main className="py-8 px-4 sm:px-6 lg:px-8">
-					<Suspense>{children}</Suspense>
-				</main>
+				<Suspense>{children}</Suspense>
 			</DashboardLayout>
 		</ClerkProvider>
 	);

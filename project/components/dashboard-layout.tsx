@@ -35,7 +35,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 	const pathName = usePathname();
 
 	return (
-		<div className="min-h-screen bg-platinum-900 dark:bg-outer_space-600">
+		<div className="h-screen overflow-hidden bg-platinum-900 dark:bg-outer_space-600">
 			{/* Mobile sidebar overlay */}
 			{isSidebarOpen && (
 				<button
@@ -89,9 +89,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 			</div>
 
 			{/* Main content */}
-			<div className="lg:pl-64">
+			<div className="flex h-screen flex-col lg:pl-64">
 				{/* Top bar */}
-				<div className="sticky top-0 z-30 flex h-16 items-center gap-x-4 border-b border-french_gray-300 dark:border-paynes_gray-400 bg-white dark:bg-outer_space-500 px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8">
+				<div className="shrink-0 sticky top-0 z-30 flex h-16 items-center gap-x-4 border-b border-french_gray-300 dark:border-paynes_gray-400 bg-white dark:bg-outer_space-500 px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-8">
 					<button
 						type="button"
 						onClick={openSidebar}
@@ -132,7 +132,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 				</div>
 
 				{/* Page content */}
-				<main className="py-8 px-4 sm:px-6 lg:px-8">{children}</main>
+				<main className="flex-1 min-h-0 overflow-y-auto py-8 px-4 sm:px-6 lg:px-8">
+					{children}
+				</main>
 			</div>
 		</div>
 	);

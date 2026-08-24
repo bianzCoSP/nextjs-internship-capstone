@@ -97,9 +97,9 @@ function KanbanColumn({
 	});
 
 	return (
-		<div className="shrink-0 w-80">
-			<div className="rounded-xl bg-platinum-100/60 dark:bg-outer_space-400/40 border border-french_gray-300/60 dark:border-paynes_gray-400/40">
-				<div className="px-4 py-3 border-b border-french_gray-300/60 dark:border-paynes_gray-400/40">
+		<div className="shrink-0 w-[85vw] sm:w-80 lg:flex-1 lg:min-w-75 h-full">
+			<div className="flex flex-col h-full max-h-full rounded-xl bg-platinum-100/60 dark:bg-outer_space-400/40 border border-french_gray-300/60 dark:border-paynes_gray-400/40">
+				<div className="shrink-0 px-4 py-3 border-b border-french_gray-300/60 dark:border-paynes_gray-400/40">
 					<div className="flex items-center justify-between">
 						<h3 className="font-semibold text-outer_space-500 dark:text-platinum-500">
 							{list.name}
@@ -122,7 +122,7 @@ function KanbanColumn({
 				>
 					<div
 						ref={setNodeRef}
-						className={`p-3 space-y-3 min-h-100 rounded-b-xl transition-colors ${
+						className={`p-3 space-y-3 flex-1 overflow-y-auto scrollbar-thin rounded-b-xl transition-colors ${
 							isOver ? "bg-blue_munsell-500/5" : ""
 						}`}
 					>
@@ -284,7 +284,7 @@ export function KanbanBoard({
 	}
 
 	return (
-		<div>
+		<div className="h-full min-h-125">
 			<DndContext
 				sensors={sensors}
 				collisionDetection={closestCorners}
@@ -293,7 +293,7 @@ export function KanbanBoard({
 				onDragEnd={handleDragEnd}
 				onDragCancel={handleDragCancel}
 			>
-				<div className="flex space-x-6 overflow-x-auto pb-4">
+				<div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 h-full">
 					{lists.map((list) => (
 						<KanbanColumn
 							key={list.id}
