@@ -32,7 +32,7 @@ const ICON_STYLES: Record<
 		bg: "bg-green-100 dark:bg-green-900",
 		text: "text-green-500",
 	},
-	activeUsers: {
+	teamMembers: {
 		icon: Users,
 		bg: "bg-purple-100 dark:bg-purple-900",
 		text: "text-purple-500",
@@ -68,9 +68,9 @@ export function AnalyticsDashboard({ analytics }: AnalyticsDashboardProps) {
 			unit: "completion rate",
 		},
 		{
-			key: "activeUsers",
-			title: "Active Users",
-			value: analytics.activeUsers.toString(),
+			key: "teamMembers",
+			title: "Team Members",
+			value: analytics.teamMembers.toString(),
 			unit: "on your projects",
 		},
 		{
@@ -175,7 +175,7 @@ export function AnalyticsDashboard({ analytics }: AnalyticsDashboardProps) {
 					</h3>
 					{teamActivityData.length === 0 ? (
 						<div className="h-64 flex items-center justify-center text-paynes_gray-500 dark:text-french_gray-400 text-sm">
-							No completed tasks in the last 14 days
+							No completed tasks in the last 7 days
 						</div>
 					) : (
 						<div className="h-64">
@@ -198,7 +198,10 @@ export function AnalyticsDashboard({ analytics }: AnalyticsDashboardProps) {
 										}}
 										labelStyle={{ color: "var(--tooltip-text)" }}
 										itemStyle={{ color: "var(--tooltip-text)" }}
-										formatter={(value) => [`${value}%`, "Progress"]}
+										formatter={(value) => [
+											`${value} task${value === 1 ? "" : "s"}`,
+											"Completed",
+										]}
 									/>
 									<Line
 										type="monotone"
