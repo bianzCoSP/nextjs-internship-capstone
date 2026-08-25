@@ -7,6 +7,7 @@ const PROTECTED_PREFIXES = [
 	"/analytics",
 	"/calendar",
 	"/settings",
+	"/__clerk/:path*",
 ];
 
 export default clerkMiddleware(async (auth, req) => {
