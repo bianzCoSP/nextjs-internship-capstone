@@ -22,6 +22,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useMemo, useRef } from "react";
 import { useBoardStore } from "@/stores/board-store";
 import { useUIStore } from "@/stores/ui-store";
+import type { ProjectMemberOption } from "./assignee-select";
 import { CreateTaskButton } from "./create-task-button";
 import { CreateTaskModal } from "./modals/create-task-modal";
 import { EditTaskModal } from "./modals/edit-task-modal";
@@ -43,6 +44,7 @@ interface KanbanBoardProps {
 	tasks: KanbanTask[];
 	projectId: string;
 	projectSlug: string;
+	members: ProjectMemberOption[];
 }
 
 function findListId(
@@ -138,6 +140,7 @@ export function KanbanBoard({
 	tasks: initialTasks,
 	projectId,
 	projectSlug,
+	members,
 }: KanbanBoardProps) {
 	const storeProjectId = useBoardStore((state) => state.projectId);
 	const hydrateBoard = useBoardStore((state) => state.hydrateBoard);
@@ -319,12 +322,17 @@ export function KanbanBoard({
 				<CreateTaskModal
 					listId={createTaskListId}
 					projectSlug={projectSlug}
+					members={members}
 					onClose={closeCreateTaskModal}
 				/>
 			)}
 
 			{isEditTaskModalOpen && editingTask && (
-				<EditTaskModal task={editingTask} onClose={closeEditTaskModal} />
+				<EditTaskModal
+					task={editingTask}
+					members={members}
+					onClose={closeEditTaskModal}
+				/>
 			)}
 		</div>
 	);

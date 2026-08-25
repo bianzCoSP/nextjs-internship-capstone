@@ -5,6 +5,7 @@ import {
 	lists,
 	projectMembers,
 	projects,
+	taskAssignees,
 	tasks,
 	users,
 } from "./schema";
@@ -127,6 +128,18 @@ export const queries = {
 				.where(eq(projects.slug, slug));
 			return row ?? null;
 		},
+		getMembers: async (projectId: string) => {
+			return await db
+				.select({
+					id: users.id,
+					name: users.name,
+					email: users.email,
+				})
+				.from(projectMembers)
+				.innerJoin(users, eq(users.id, projectMembers.userId))
+				.where(eq(projectMembers.projectId, projectId))
+				.orderBy(users.name);
+		},
 		create: async (data: NewProject) => {
 			const slug = await generateUniqueProjectSlug(data.name);
 			const [project] = await db
@@ -184,6 +197,9 @@ export const queries = {
 
 				if (taskIds.length > 0) {
 					await db.delete(comments).where(inArray(comments.taskId, taskIds));
+					await db
+						.delete(taskAssignees)
+						.where(inArray(taskAssignees.taskId, taskIds));
 					await db.delete(tasks).where(inArray(tasks.listId, listIds));
 				}
 
@@ -231,8 +247,6 @@ export const queries = {
 					title: tasks.title,
 					description: tasks.description,
 					listId: tasks.listId,
-					assigneeId: tasks.assigneeId,
-					assigneeName: users.name,
 					priority: tasks.priority,
 					status: tasks.status,
 					dueDate: tasks.dueDate,
@@ -242,11 +256,33 @@ export const queries = {
 				})
 				.from(tasks)
 				.innerJoin(lists, eq(lists.id, tasks.listId))
-				.leftJoin(users, eq(users.id, tasks.assigneeId))
 				.where(eq(lists.projectId, projectId))
 				.orderBy(tasks.position);
 
-			return rows;
+			const taskIds = rows.map((row) => row.id);
+			const assigneeRows = taskIds.length
+				? await db
+						.select({
+							taskId: taskAssignees.taskId,
+							id: users.id,
+							name: users.name,
+						})
+						.from(taskAssignees)
+						.innerJoin(users, eq(users.id, taskAssignees.userId))
+						.where(inArray(taskAssignees.taskId, taskIds))
+				: [];
+
+			const assigneesByTask = new Map<string, { id: string; name: string }[]>();
+			for (const row of assigneeRows) {
+				const bucket = assigneesByTask.get(row.taskId) ?? [];
+				bucket.push({ id: row.id, name: row.name });
+				assigneesByTask.set(row.taskId, bucket);
+			}
+
+			return rows.map((row) => ({
+				...row,
+				assignees: assigneesByTask.get(row.id) ?? [],
+			}));
 		},
 		getByList: async (listId: string) => {
 			return await db
@@ -259,6 +295,14 @@ export const queries = {
 			const [task] = await db.insert(tasks).values(data).returning();
 			return task;
 		},
+		setAssignees: async (taskId: string, userIds: string[]) => {
+			await db.delete(taskAssignees).where(eq(taskAssignees.taskId, taskId));
+			if (userIds.length > 0) {
+				await db
+					.insert(taskAssignees)
+					.values(userIds.map((userId) => ({ taskId, userId })));
+			}
+		},
 		update: async (id: string, data: UpdateTask) => {
 			const [task] = await db
 				.update(tasks)
@@ -269,6 +313,7 @@ export const queries = {
 		},
 		delete: async (id: string) => {
 			await db.delete(comments).where(eq(comments.taskId, id));
+			await db.delete(taskAssignees).where(eq(taskAssignees.taskId, id));
 			await db.delete(tasks).where(eq(tasks.id, id));
 		},
 		reorder: async (listId: string, orderedIds: string[]) => {
@@ -367,6 +412,13 @@ export const queries = {
 		},
 		delete: async (clerkId: string) => {
 			await db.delete(users).where(eq(users.clerkId, clerkId));
+		},
+		getByIds: async (ids: string[]) => {
+			if (ids.length === 0) return [];
+			return await db
+				.select({ id: users.id, name: users.name })
+				.from(users)
+				.where(inArray(users.id, ids));
 		},
 	},
 	analytics: {

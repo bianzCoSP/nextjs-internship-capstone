@@ -12,7 +12,7 @@ export type CreateTaskState = {
 	success: boolean;
 	errors?: Record<string, string[] | undefined>;
 	task?: Awaited<ReturnType<typeof queries.tasks.create>> & {
-		assigneeName?: string | null;
+		assignees?: { id: string; name: string }[];
 	};
 };
 
@@ -59,6 +59,12 @@ export async function createTask(
 		};
 	}
 
+	const assigneeIds = formData
+		.getAll("assigneeIds")
+		.filter(
+			(value): value is string => typeof value === "string" && value.length > 0,
+		);
+
 	const existingTasks = await queries.tasks.getByList(listId);
 	const position =
 		existingTasks.length > 0
@@ -77,19 +83,24 @@ export async function createTask(
 		status,
 	});
 
+	await queries.tasks.setAssignees(task.id, assigneeIds);
+	const assignees = await queries.users.getByIds(assigneeIds);
+
 	const projectSlug = formData.get("projectSlug") as string;
 	if (projectSlug) {
 		revalidatePath(`/projects/${projectSlug}`);
 	}
 	revalidatePath("/projects");
 
-	return { success: true, task: { ...task, assigneeName: user.name } };
+	return { success: true, task: { ...task, assignees } };
 }
 
 export type UpdateTaskState = {
 	success: boolean;
 	errors?: Record<string, string[] | undefined>;
-	task?: Awaited<ReturnType<typeof queries.tasks.update>>;
+	task?: Awaited<ReturnType<typeof queries.tasks.update>> & {
+		assignees?: { id: string; name: string }[];
+	};
 };
 
 export async function updateTask(
@@ -135,12 +146,21 @@ export async function updateTask(
 		return { success: false, errors: { _form: ["Task not found"] } };
 	}
 
+	const assigneeIds = formData
+		.getAll("assigneeIds")
+		.filter(
+			(value): value is string => typeof value === "string" && value.length > 0,
+		);
+
+	await queries.tasks.setAssignees(taskId, assigneeIds);
+	const assignees = await queries.users.getByIds(assigneeIds);
+
 	if (projectSlug) {
 		revalidatePath(`/projects/${projectSlug}`);
 	}
 	revalidatePath("/projects");
 
-	return { success: true, task };
+	return { success: true, task: { ...task, assignees } };
 }
 
 export type DeleteTaskState = {

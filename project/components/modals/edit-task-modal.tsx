@@ -3,11 +3,16 @@
 import { Trash2, X } from "lucide-react";
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import {
+	AssigneeSelect,
+	type ProjectMemberOption,
+} from "@/components/assignee-select";
 import type { KanbanTask } from "@/components/kanban-board";
 import { useBoardStore } from "@/stores/board-store";
 
 interface EditTaskModalProps {
 	task: KanbanTask;
+	members: ProjectMemberOption[];
 	onClose: () => void;
 }
 
@@ -38,13 +43,16 @@ function formatDateInputValue(value?: Date | string | null) {
 	return date.toISOString().slice(0, 10);
 }
 
-export function EditTaskModal({ task, onClose }: EditTaskModalProps) {
+export function EditTaskModal({ task, members, onClose }: EditTaskModalProps) {
 	const updateTask = useBoardStore((state) => state.updateTask);
 	const deleteTask = useBoardStore((state) => state.deleteTask);
 
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
+	const [assigneeIds, setAssigneeIds] = useState<string[]>(
+		task.assignees?.map((assignee) => assignee.id) ?? [],
+	);
 
 	const [state, formAction] = useActionState(
 		async (
@@ -59,6 +67,7 @@ export function EditTaskModal({ task, onClose }: EditTaskModalProps) {
 				description: (formData.get("description") as string) || undefined,
 				priority,
 				dueDate: (formData.get("dueDate") as string) || undefined,
+				assigneeIds,
 			});
 
 			if (result.success) {
@@ -174,6 +183,13 @@ export function EditTaskModal({ task, onClose }: EditTaskModalProps) {
 								)}
 							</div>
 						</div>
+
+						<AssigneeSelect
+							members={members}
+							selectedIds={assigneeIds}
+							onChange={setAssigneeIds}
+							error={state.errors?.assigneeIds?.[0]}
+						/>
 
 						<div className="flex items-center justify-between pt-4">
 							<button

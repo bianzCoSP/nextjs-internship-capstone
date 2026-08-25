@@ -114,6 +114,25 @@ export const projectMembers = pgTable(
 	],
 );
 
+export const taskAssignees = pgTable(
+	"task_assignees",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		taskId: uuid("task_id")
+			.notNull()
+			.references(() => tasks.id),
+		userId: uuid("user_id")
+			.notNull()
+			.references(() => users.id),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+	},
+	(table) => [
+		index("task_assignees_task_id_idx").on(table.taskId),
+		index("task_assignees_user_id_idx").on(table.userId),
+		index("task_assignees_task_user_idx").on(table.taskId, table.userId),
+	],
+);
+
 export const comments = pgTable(
 	"comments",
 	{
@@ -141,6 +160,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 	ownedProjects: many(projects),
 	projectMemberships: many(projectMembers),
 	assignedTasks: many(tasks),
+	taskAssignments: many(taskAssignees),
 	comments: many(comments),
 }));
 
@@ -172,7 +192,19 @@ export const listsRelations = relations(lists, ({ one, many }) => ({
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
 	list: one(lists, { fields: [tasks.listId], references: [lists.id] }),
 	assignee: one(users, { fields: [tasks.assigneeId], references: [users.id] }),
+	assignees: many(taskAssignees),
 	comments: many(comments),
+}));
+
+export const taskAssigneesRelations = relations(taskAssignees, ({ one }) => ({
+	task: one(tasks, {
+		fields: [taskAssignees.taskId],
+		references: [tasks.id],
+	}),
+	user: one(users, {
+		fields: [taskAssignees.userId],
+		references: [users.id],
+	}),
 }));
 
 export const commentsRelations = relations(comments, ({ one }) => ({

@@ -18,9 +18,10 @@ export default async function ProjectPage({
 		notFound();
 	}
 
-	const [lists, tasks] = await Promise.all([
+	const [lists, tasks, members] = await Promise.all([
 		queries.lists.getByProject(project.id),
 		queries.tasks.getByProject(project.id),
+		queries.projects.getMembers(project.id),
 	]);
 
 	return (
@@ -73,6 +74,7 @@ export default async function ProjectPage({
 					tasks={tasks}
 					projectId={project.id}
 					projectSlug={project.slug}
+					members={members}
 				/>
 			</div>
 		</div>

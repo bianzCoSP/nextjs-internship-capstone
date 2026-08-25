@@ -20,6 +20,7 @@ interface CreateTaskInput {
 	priority: "low" | "medium" | "high";
 	dueDate?: string;
 	assigneeName?: string | null;
+	assigneeIds?: string[];
 }
 
 interface UpdateTaskInput {
@@ -27,6 +28,7 @@ interface UpdateTaskInput {
 	description?: string;
 	priority: "low" | "medium" | "high";
 	dueDate?: string;
+	assigneeIds?: string[];
 }
 
 interface BoardState {
@@ -167,6 +169,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 			listId: input.listId,
 			assigneeId: null,
 			assigneeName: input.assigneeName ?? null,
+			assignees: [],
 			priority: input.priority,
 			status: "To Do",
 			dueDate: input.dueDate ? new Date(input.dueDate) : null,
@@ -189,6 +192,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 		if (input.description) formData.set("description", input.description);
 		formData.set("priority", input.priority);
 		if (input.dueDate) formData.set("dueDate", input.dueDate);
+		for (const assigneeId of input.assigneeIds ?? []) {
+			formData.append("assigneeIds", assigneeId);
+		}
 
 		const result = await createTaskAction({ success: false }, formData);
 
@@ -207,7 +213,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 					? ({
 							...task,
 							...result.task,
-							assigneeName: result.task?.assigneeName ?? task.assigneeName,
+							assignees: result.task?.assignees ?? [],
 						} as KanbanTask)
 					: task,
 			),
@@ -241,6 +247,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 		if (input.description) formData.set("description", input.description);
 		formData.set("priority", input.priority);
 		if (input.dueDate) formData.set("dueDate", input.dueDate);
+		for (const assigneeId of input.assigneeIds ?? []) {
+			formData.append("assigneeIds", assigneeId);
+		}
 
 		const result = await updateTaskAction(
 			taskId,
@@ -260,7 +269,13 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
 		set((state) => ({
 			tasks: state.tasks.map((task) =>
-				task.id === taskId ? ({ ...task, ...result.task } as KanbanTask) : task,
+				task.id === taskId
+					? ({
+							...task,
+							...result.task,
+							assignees: result.task?.assignees ?? task.assignees,
+						} as KanbanTask)
+					: task,
 			),
 			isSaving: false,
 		}));

@@ -2,14 +2,19 @@
 
 import { useUser } from "@clerk/nextjs";
 import { X } from "lucide-react";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
+import {
+	AssigneeSelect,
+	type ProjectMemberOption,
+} from "@/components/assignee-select";
 import type { CreateTaskState } from "@/lib/actions/task-actions";
 import { useBoardStore } from "@/stores/board-store";
 
 interface CreateTaskModalProps {
 	listId: string;
 	projectSlug: string;
+	members: ProjectMemberOption[];
 	onClose: () => void;
 }
 
@@ -31,11 +36,14 @@ function SubmitButton() {
 export function CreateTaskModal({
 	listId,
 	projectSlug,
+	members,
 	onClose,
 }: CreateTaskModalProps) {
 	const createTask = useBoardStore((state) => state.createTask);
 	const { user } = useUser();
 	const assigneeName = user?.fullName ?? user?.username ?? null;
+
+	const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
 
 	const [state, formAction] = useActionState(
 		async (
@@ -53,6 +61,7 @@ export function CreateTaskModal({
 				priority,
 				dueDate: (formData.get("dueDate") as string) || undefined,
 				assigneeName,
+				assigneeIds,
 			});
 		},
 		initialState,
@@ -149,6 +158,13 @@ export function CreateTaskModal({
 							)}
 						</div>
 					</div>
+
+					<AssigneeSelect
+						members={members}
+						selectedIds={assigneeIds}
+						onChange={setAssigneeIds}
+						error={state.errors?.assigneeIds?.[0]}
+					/>
 
 					<div className="flex justify-end space-x-3 pt-4">
 						<button type="button" onClick={onClose} className="px-4 py-2">
