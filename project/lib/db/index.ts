@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, ne, notInArray, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
 import {
 	comments,
@@ -139,6 +139,61 @@ export const queries = {
 				.innerJoin(users, eq(users.id, projectMembers.userId))
 				.where(eq(projectMembers.projectId, projectId))
 				.orderBy(users.name);
+		},
+		isMember: async (projectId: string, userId: string) => {
+			const [row] = await db
+				.select({ id: projectMembers.id })
+				.from(projectMembers)
+				.where(
+					and(
+						eq(projectMembers.projectId, projectId),
+						eq(projectMembers.userId, userId),
+					),
+				);
+			return !!row;
+		},
+		addMember: async (projectId: string, userId: string) => {
+			const [existing] = await db
+				.select({ id: projectMembers.id })
+				.from(projectMembers)
+				.where(
+					and(
+						eq(projectMembers.projectId, projectId),
+						eq(projectMembers.userId, userId),
+					),
+				);
+
+			if (existing) return null;
+
+			const [member] = await db
+				.insert(projectMembers)
+				.values({ projectId, userId })
+				.returning();
+			return member ?? null;
+		},
+		addMembers: async (projectId: string, userIds: string[]) => {
+			if (userIds.length === 0) return [];
+
+			const uniqueUserIds = [...new Set(userIds)];
+
+			const existing = await db
+				.select({ userId: projectMembers.userId })
+				.from(projectMembers)
+				.where(
+					and(
+						eq(projectMembers.projectId, projectId),
+						inArray(projectMembers.userId, uniqueUserIds),
+					),
+				);
+			const existingIds = new Set(existing.map((row) => row.userId));
+			const newUserIds = uniqueUserIds.filter((id) => !existingIds.has(id));
+
+			if (newUserIds.length === 0) return [];
+
+			return await db
+				.insert(projectMembers)
+				.values(newUserIds.map((userId) => ({ projectId, userId })))
+				.returning();
 		},
 		create: async (data: NewProject) => {
 			const slug = await generateUniqueProjectSlug(data.name);
@@ -397,6 +452,30 @@ export const queries = {
 				.groupBy(users.id);
 
 			return rows.sort((a, b) => b.sharedProjectCount - a.sharedProjectCount);
+		},
+
+		search: async (query: string, excludeIds: string[] = []) => {
+			const trimmed = query.trim();
+			if (!trimmed) return [];
+
+			const pattern = `%${trimmed}%`;
+			const nameOrEmailMatch = or(
+				ilike(users.name, pattern),
+				ilike(users.email, pattern),
+			);
+
+			const rows = await db
+				.select({ id: users.id, name: users.name, email: users.email })
+				.from(users)
+				.where(
+					excludeIds.length > 0
+						? and(nameOrEmailMatch, notInArray(users.id, excludeIds))
+						: nameOrEmailMatch,
+				)
+				.orderBy(users.name)
+				.limit(10);
+
+			return rows;
 		},
 		create: async (data: NewUser) => {
 			const [user] = await db.insert(users).values(data).returning();

@@ -7,6 +7,7 @@ export interface TaskCardTask {
 	description?: string | null;
 	priority: "low" | "medium" | "high";
 	assigneeName?: string | null;
+	assignees?: { id: string; name: string }[];
 	dueDate?: Date | string | null;
 	createdAt?: Date | string | null;
 }
@@ -53,6 +54,56 @@ function formatCreatedDate(createdAt?: Date | string | null) {
 		month: "short",
 		day: "numeric",
 	});
+}
+
+const MAX_VISIBLE_ASSIGNEES = 3;
+
+function AssigneeAvatars({
+	assignees,
+	fallbackName,
+}: {
+	assignees?: { id: string; name: string }[];
+	fallbackName?: string | null;
+}) {
+	if (assignees && assignees.length > 0) {
+		const visible = assignees.slice(0, MAX_VISIBLE_ASSIGNEES);
+		const overflow = assignees.length - visible.length;
+
+		return (
+			<div className="flex items-center -space-x-2">
+				{visible.map((assignee) => (
+					<div
+						key={assignee.id}
+						title={assignee.name}
+						className="w-6 h-6 shrink-0 bg-blue_munsell-500 rounded-full ring-2 ring-white dark:ring-outer_space-300 flex items-center justify-center text-white text-xs font-semibold"
+					>
+						{getInitials(assignee.name)}
+					</div>
+				))}
+				{overflow > 0 ? (
+					<div
+						title={`${overflow} more`}
+						className="w-6 h-6 shrink-0 bg-paynes_gray-500 rounded-full ring-2 ring-white dark:ring-outer_space-300 flex items-center justify-center text-white text-[10px] font-semibold"
+					>
+						+{overflow}
+					</div>
+				) : null}
+			</div>
+		);
+	}
+
+	if (fallbackName) {
+		return (
+			<div
+				title={fallbackName}
+				className="w-6 h-6 shrink-0 bg-blue_munsell-500 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+			>
+				{getInitials(fallbackName)}
+			</div>
+		);
+	}
+
+	return null;
 }
 
 export function TaskCard({
@@ -139,14 +190,10 @@ export function TaskCard({
 						</span>
 					) : null}
 
-					{task.assigneeName ? (
-						<div
-							title={task.assigneeName}
-							className="w-6 h-6 shrink-0 bg-blue_munsell-500 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-						>
-							{getInitials(task.assigneeName)}
-						</div>
-					) : null}
+					<AssigneeAvatars
+						assignees={task.assignees}
+						fallbackName={task.assigneeName}
+					/>
 				</div>
 			</div>
 		</div>

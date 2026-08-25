@@ -77,7 +77,9 @@ export const tasks = pgTable(
 		listId: uuid("list_id")
 			.notNull()
 			.references(() => lists.id),
-		assigneeId: uuid("assignee_id").references(() => users.id),
+		creatorId: uuid("creator_id")
+			.notNull()
+			.references(() => users.id),
 		priority: priorityEnum("priority").notNull().default("medium"),
 		status: statusEnum("status").notNull().default("To Do"),
 		dueDate: timestamp("due_date").notNull(),
@@ -89,7 +91,7 @@ export const tasks = pgTable(
 	(table) => [
 		index("tasks_list_id_idx").on(table.listId),
 		index("tasks_list_position_idx").on(table.listId, table.position),
-		index("tasks_assignee_id_idx").on(table.assigneeId),
+		index("tasks_creator_id_idx").on(table.creatorId),
 		index("tasks_due_date_idx").on(table.dueDate),
 		index("tasks_priority_idx").on(table.priority),
 	],
@@ -159,7 +161,7 @@ export const comments = pgTable(
 export const usersRelations = relations(users, ({ many }) => ({
 	ownedProjects: many(projects),
 	projectMemberships: many(projectMembers),
-	assignedTasks: many(tasks),
+	createdTasks: many(tasks),
 	taskAssignments: many(taskAssignees),
 	comments: many(comments),
 }));
@@ -191,7 +193,7 @@ export const listsRelations = relations(lists, ({ one, many }) => ({
 
 export const tasksRelations = relations(tasks, ({ one, many }) => ({
 	list: one(lists, { fields: [tasks.listId], references: [lists.id] }),
-	assignee: one(users, { fields: [tasks.assigneeId], references: [users.id] }),
+	creator: one(users, { fields: [tasks.creatorId], references: [users.id] }),
 	assignees: many(taskAssignees),
 	comments: many(comments),
 }));

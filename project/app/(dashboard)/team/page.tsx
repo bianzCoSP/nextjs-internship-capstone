@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
-import { UserPlus } from "lucide-react";
+import { InviteMemberButton } from "@/components/invite-member-button";
 import { TeamGrid } from "@/components/team-grid";
-import { queries } from "@/lib/db";
+import { queries } from "@/lib/db/index";
 
 export default async function TeamPage() {
 	const { userId: clerkId } = await auth();
@@ -11,6 +11,10 @@ export default async function TeamPage() {
 
 	const teammates = currentUser
 		? await queries.users.getTeammates(currentUser.id)
+		: [];
+
+	const projects = currentUser
+		? await queries.projects.getAllForUser(currentUser.id)
 		: [];
 
 	return (
@@ -24,13 +28,12 @@ export default async function TeamPage() {
 						People you share projects with
 					</p>
 				</div>
-				<button
-					type="button"
-					className="inline-flex items-center px-4 py-2 bg-blue_munsell-500 text-white rounded-lg hover:bg-blue_munsell-600 transition-colors"
-				>
-					<UserPlus size={20} className="mr-2" />
-					Invite Member
-				</button>
+				<InviteMemberButton
+					projects={projects.map((project) => ({
+						id: project.id,
+						name: project.name,
+					}))}
+				/>
 			</div>
 
 			<TeamGrid members={teammates} />

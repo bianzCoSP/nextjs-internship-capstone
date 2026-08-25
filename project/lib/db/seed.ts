@@ -10,13 +10,21 @@ if (!process.env.DATABASE_URL) {
 
 async function main() {
 	const { db } = await import("./drizzle");
-	const { comments, lists, projectMembers, projects, tasks, users } =
-		await import("./schema");
+	const {
+		comments,
+		lists,
+		projectMembers,
+		projects,
+		taskAssignees,
+		tasks,
+		users,
+	} = await import("./schema");
 
 	async function resetSeedData() {
 		console.log("Clearing previously seeded data (users untouched)...");
 
 		await db.delete(comments);
+		await db.delete(taskAssignees);
 		await db.delete(tasks);
 		await db.delete(lists);
 		await db.delete(projectMembers);
@@ -118,14 +126,23 @@ async function main() {
 	void inProgressBeta;
 	void reviewBeta;
 
-	const [taskOne, taskTwo, taskThree, taskFour] = await db
+	const [
+		taskOne,
+		taskTwo,
+		taskThree,
+		taskFour,
+		taskFive,
+		taskSix,
+		taskSeven,
+		taskEight,
+	] = await db
 		.insert(tasks)
 		.values([
 			{
 				title: "Design new homepage hero",
 				description: "Explore 3 concepts and present to stakeholders",
 				listId: todoAlpha.id,
-				assigneeId: userA.id,
+				creatorId: userA.id,
 				priority: "high",
 				status: "To Do",
 				position: 0,
@@ -136,7 +153,7 @@ async function main() {
 				title: "Set up CI/CD pipeline",
 				description: "Automate build and deploy on merge to main",
 				listId: inProgressAlpha.id,
-				assigneeId: userB.id,
+				creatorId: userB.id,
 				priority: "medium",
 				status: "In Progress",
 				position: 0,
@@ -147,7 +164,7 @@ async function main() {
 				title: "Migrate legacy blog posts",
 				description: "Move all posts from the old CMS and set up redirects",
 				listId: doneAlpha.id,
-				assigneeId: userA.id,
+				creatorId: userA.id,
 				priority: "low",
 				status: "Done",
 				position: 0,
@@ -159,7 +176,7 @@ async function main() {
 				title: "Define app onboarding flow",
 				description: "Wireframe the first-run experience",
 				listId: todoBeta.id,
-				assigneeId: userC.id,
+				creatorId: userC.id,
 				priority: "medium",
 				status: "To Do",
 				position: 0,
@@ -170,7 +187,7 @@ async function main() {
 				title: "Write API documentation",
 				description: "Document all REST endpoints for the mobile team",
 				listId: doneAlpha.id,
-				assigneeId: userB.id,
+				creatorId: userB.id,
 				priority: "medium",
 				status: "Done",
 				position: 1,
@@ -182,7 +199,7 @@ async function main() {
 				title: "Fix critical security bug",
 				description: "Patch the auth token validation vulnerability",
 				listId: doneBeta.id,
-				assigneeId: userC.id,
+				creatorId: userC.id,
 				priority: "high",
 				status: "Done",
 				position: 0,
@@ -194,7 +211,7 @@ async function main() {
 				title: "Optimize database queries",
 				description: "Add missing indexes and cut p95 query time in half",
 				listId: doneAlpha.id,
-				assigneeId: userA.id,
+				creatorId: userA.id,
 				priority: "medium",
 				status: "Done",
 				position: 2,
@@ -206,7 +223,7 @@ async function main() {
 				title: "Update dependency versions",
 				description: "Bump outdated npm packages and resolve breaking changes",
 				listId: doneBeta.id,
-				assigneeId: userB.id,
+				creatorId: userB.id,
 				priority: "low",
 				status: "Done",
 				position: 1,
@@ -216,6 +233,26 @@ async function main() {
 			},
 		])
 		.returning();
+
+	console.log("Assigning tasks to project members...");
+
+	const taskAssigneeMap: Record<string, string[]> = {
+		[taskOne.id]: [userA.id, userB.id],
+		[taskTwo.id]: [userB.id],
+		[taskThree.id]: [userA.id],
+		[taskFour.id]: [userC.id, userB.id],
+		[taskFive.id]: [userB.id],
+		[taskSix.id]: [userC.id],
+		[taskSeven.id]: [userA.id],
+		[taskEight.id]: [userB.id],
+	};
+
+	const taskAssigneeRows = Object.entries(taskAssigneeMap).flatMap(
+		([taskId, userIds]) =>
+			Array.from(new Set(userIds)).map((userId) => ({ taskId, userId })),
+	);
+
+	await db.insert(taskAssignees).values(taskAssigneeRows);
 
 	await db.insert(comments).values([
 		{
@@ -241,7 +278,9 @@ async function main() {
 	]);
 
 	console.log("Seeding complete.");
-	console.log(`Created ${2} projects, ${8} lists, ${8} tasks, ${4} comments.`);
+	console.log(
+		`Created ${2} projects, ${8} lists, ${8} tasks, ${taskAssigneeRows.length} task assignments, ${4} comments.`,
+	);
 }
 
 main()
