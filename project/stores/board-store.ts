@@ -168,7 +168,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 			description: input.description ?? null,
 			listId: input.listId,
 			creatorId: null,
-			assigneeName: input.assigneeName ?? null,
+			assigneeName: null,
 			assignees: [],
 			priority: input.priority,
 			status: "To Do",
@@ -213,6 +213,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 					? ({
 							...task,
 							...result.task,
+							assigneeName: null,
 							assignees: result.task?.assignees ?? [],
 						} as KanbanTask)
 					: task,
