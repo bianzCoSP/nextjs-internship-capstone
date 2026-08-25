@@ -5,78 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1784876166397,
-      "tag": "0000_fair_magdalene",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1786585364126,
-      "tag": "0001_eminent_spectrum",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1786586321355,
-      "tag": "0002_chunky_black_bolt",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1786586808175,
-      "tag": "0003_elite_wilson_fisk",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1786678548384,
-      "tag": "0004_useful_retro_girl",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1786689366905,
-      "tag": "0005_pretty_argent",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1787208588190,
-      "tag": "0006_clever_vargas",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1787622383347,
-      "tag": "0007_confused_iron_lad",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1787628780077,
-      "tag": "0008_lying_silk_fever",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1787631779905,
-      "tag": "0009_cuddly_wilson_fisk",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1787637970301,
-      "tag": "0010_safe_vertigo",
+      "when": 1787640252224,
+      "tag": "0000_aberrant_reavers",
       "breakpoints": true
     }
   ]
