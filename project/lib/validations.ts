@@ -44,3 +44,21 @@ export const listSchema = z.object({
 export const commentSchema = z.object({
 	content: z.string().max(1000, "Comment is too long").optional(),
 });
+
+export const eventSchema = z
+	.object({
+		title: z.string().min(1, "Title is required").max(200, "Title too long"),
+		description: z.string().max(1000, "Description too long").optional(),
+		startDate: z.date({ message: "Start date is required" }),
+		endDate: z.date({ message: "End date is required" }),
+		allDay: z.boolean().optional(),
+		color: z
+			.string()
+			.regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Enter a valid hex color")
+			.optional(),
+		projectId: z.string().optional(),
+	})
+	.refine((data) => data.endDate >= data.startDate, {
+		message: "End must be after start",
+		path: ["endDate"],
+	});

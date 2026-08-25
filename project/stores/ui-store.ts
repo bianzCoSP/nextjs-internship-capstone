@@ -15,6 +15,8 @@ interface UIState {
 	isTaskDetailModalOpen: boolean;
 	selectedTaskId: string | null;
 
+	isCreateEventModalOpen: boolean;
+
 	isSidebarOpen: boolean;
 	theme: "light" | "dark";
 
@@ -35,6 +37,9 @@ interface UIState {
 
 	openTaskDetailModal: (taskId: string) => void;
 	closeTaskDetailModal: () => void;
+
+	openCreateEventModal: () => void;
+	closeCreateEventModal: () => void;
 
 	openSidebar: () => void;
 	closeSidebar: () => void;
@@ -59,6 +64,8 @@ export const useUIStore = create<UIState>()(
 
 			isTaskDetailModalOpen: false,
 			selectedTaskId: null,
+
+			isCreateEventModalOpen: false,
 
 			isSidebarOpen: false,
 			theme: "light",
@@ -86,6 +93,9 @@ export const useUIStore = create<UIState>()(
 				set({ isTaskDetailModalOpen: true, selectedTaskId: taskId }),
 			closeTaskDetailModal: () =>
 				set({ isTaskDetailModalOpen: false, selectedTaskId: null }),
+
+			openCreateEventModal: () => set({ isCreateEventModalOpen: true }),
+			closeCreateEventModal: () => set({ isCreateEventModalOpen: false }),
 
 			openSidebar: () => set({ isSidebarOpen: true }),
 			closeSidebar: () => set({ isSidebarOpen: false }),

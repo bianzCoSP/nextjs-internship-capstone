@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+	boolean,
 	index,
 	integer,
 	pgEnum,
@@ -158,6 +159,30 @@ export const comments = pgTable(
 	],
 );
 
+export const events = pgTable(
+	"events",
+	{
+		id: uuid("id").primaryKey().defaultRandom(),
+		title: text("title").notNull(),
+		description: text("description"),
+		startDate: timestamp("start_date").notNull(),
+		endDate: timestamp("end_date").notNull(),
+		allDay: boolean("all_day").notNull().default(false),
+		color: text("color").notNull().default("#4a89a9"),
+		projectId: uuid("project_id").references(() => projects.id),
+		creatorId: uuid("creator_id")
+			.notNull()
+			.references(() => users.id),
+		createdAt: timestamp("created_at").notNull().defaultNow(),
+		updatedAt: timestamp("updated_at").notNull().defaultNow(),
+	},
+	(table) => [
+		index("events_project_id_idx").on(table.projectId),
+		index("events_creator_id_idx").on(table.creatorId),
+		index("events_start_date_idx").on(table.startDate),
+	],
+);
+
 // Relations
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -166,12 +191,14 @@ export const usersRelations = relations(users, ({ many }) => ({
 	createdTasks: many(tasks),
 	taskAssignments: many(taskAssignees),
 	comments: many(comments),
+	createdEvents: many(events),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
 	owner: one(users, { fields: [projects.ownerId], references: [users.id] }),
 	lists: many(lists),
 	members: many(projectMembers),
+	events: many(events),
 }));
 
 export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
@@ -214,4 +241,15 @@ export const taskAssigneesRelations = relations(taskAssignees, ({ one }) => ({
 export const commentsRelations = relations(comments, ({ one }) => ({
 	task: one(tasks, { fields: [comments.taskId], references: [tasks.id] }),
 	author: one(users, { fields: [comments.authorId], references: [users.id] }),
+}));
+
+export const eventsRelations = relations(events, ({ one }) => ({
+	project: one(projects, {
+		fields: [events.projectId],
+		references: [projects.id],
+	}),
+	creator: one(users, {
+		fields: [events.creatorId],
+		references: [users.id],
+	}),
 }));

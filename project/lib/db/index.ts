@@ -2,6 +2,7 @@ import { and, eq, ilike, inArray, ne, notInArray, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
 import {
 	comments,
+	events,
 	lists,
 	projectMembers,
 	projects,
@@ -22,6 +23,11 @@ type NewComment = Omit<
 	typeof comments.$inferInsert,
 	"id" | "createdAt" | "updatedAt"
 >;
+type NewEvent = Omit<
+	typeof events.$inferInsert,
+	"id" | "createdAt" | "updatedAt"
+>;
+type UpdateEvent = Partial<typeof events.$inferInsert>;
 
 const DEFAULT_LIST_NAMES = ["To Do", "In Progress", "Review", "Done"];
 
@@ -265,6 +271,7 @@ export const queries = {
 				await db.delete(lists).where(eq(lists.projectId, id));
 			}
 
+			await db.delete(events).where(eq(events.projectId, id));
 			await db.delete(projectMembers).where(eq(projectMembers.projectId, id));
 			await db.delete(projects).where(eq(projects.id, id));
 		},
@@ -343,6 +350,35 @@ export const queries = {
 				...row,
 				assignees: assigneesByTask.get(row.id) ?? [],
 			}));
+		},
+
+		getAllForUser: async (userId: string) => {
+			const memberProjectIds = db
+				.select({ projectId: projectMembers.projectId })
+				.from(projectMembers)
+				.where(eq(projectMembers.userId, userId));
+
+			const rows = await db
+				.select({
+					id: tasks.id,
+					title: tasks.title,
+					slug: tasks.slug,
+					priority: tasks.priority,
+					status: tasks.status,
+					dueDate: tasks.dueDate,
+					listId: tasks.listId,
+					projectId: projects.id,
+					projectName: projects.name,
+					projectSlug: projects.slug,
+					projectColor: projects.color,
+				})
+				.from(tasks)
+				.innerJoin(lists, eq(lists.id, tasks.listId))
+				.innerJoin(projects, eq(projects.id, lists.projectId))
+				.where(inArray(projects.id, memberProjectIds))
+				.orderBy(tasks.dueDate);
+
+			return rows;
 		},
 		getByList: async (listId: string) => {
 			return await db
@@ -480,6 +516,63 @@ export const queries = {
 		},
 		delete: async (id: string) => {
 			await db.delete(comments).where(eq(comments.id, id));
+		},
+	},
+	events: {
+		getAllForUser: async (userId: string) => {
+			const memberProjectIds = db
+				.select({ projectId: projectMembers.projectId })
+				.from(projectMembers)
+				.where(eq(projectMembers.userId, userId));
+
+			const rows = await db
+				.select({
+					id: events.id,
+					title: events.title,
+					description: events.description,
+					startDate: events.startDate,
+					endDate: events.endDate,
+					allDay: events.allDay,
+					color: events.color,
+					projectId: events.projectId,
+					projectName: projects.name,
+					projectSlug: projects.slug,
+					creatorId: events.creatorId,
+					creatorName: users.name,
+					createdAt: events.createdAt,
+					updatedAt: events.updatedAt,
+				})
+				.from(events)
+				.innerJoin(users, eq(users.id, events.creatorId))
+				.leftJoin(projects, eq(projects.id, events.projectId))
+				.where(
+					or(
+						eq(events.creatorId, userId),
+						inArray(events.projectId, memberProjectIds),
+					),
+				)
+				.orderBy(events.startDate);
+
+			return rows;
+		},
+		getById: async (id: string) => {
+			const [row] = await db.select().from(events).where(eq(events.id, id));
+			return row ?? null;
+		},
+		create: async (data: NewEvent) => {
+			const [event] = await db.insert(events).values(data).returning();
+			return event;
+		},
+		update: async (id: string, data: UpdateEvent) => {
+			const [event] = await db
+				.update(events)
+				.set({ ...data, updatedAt: new Date() })
+				.where(eq(events.id, id))
+				.returning();
+			return event ?? null;
+		},
+		delete: async (id: string) => {
+			await db.delete(events).where(eq(events.id, id));
 		},
 	},
 	users: {
