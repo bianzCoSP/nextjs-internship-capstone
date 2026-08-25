@@ -18,7 +18,7 @@ async function confirm() {
 	});
 
 	const answer = await rl.question(
-		`This will permanently delete all projects, lists, tasks, comments, and\nproject/task assignments from:\n  ${process.env.DATABASE_URL}\n(users will NOT be touched)\nType "yes" to continue: `,
+		`This will permanently delete all projects, lists, tasks, comments,\nevents, and project/task assignments from:\n  ${process.env.DATABASE_URL}\n(users will NOT be touched)\nType "yes" to continue: `,
 	);
 	rl.close();
 
@@ -33,8 +33,15 @@ async function main() {
 	}
 
 	const { db } = await import("./drizzle");
-	const { comments, taskAssignees, tasks, lists, projectMembers, projects } =
-		await import("./schema");
+	const {
+		comments,
+		events,
+		taskAssignees,
+		tasks,
+		lists,
+		projectMembers,
+		projects,
+	} = await import("./schema");
 
 	console.log("Clearing database (users untouched)...");
 
@@ -42,6 +49,7 @@ async function main() {
 	await db.delete(taskAssignees);
 	await db.delete(tasks);
 	await db.delete(lists);
+	await db.delete(events);
 	await db.delete(projectMembers);
 	await db.delete(projects);
 

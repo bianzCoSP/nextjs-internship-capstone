@@ -12,6 +12,7 @@ async function main() {
 	const { db } = await import("./drizzle");
 	const {
 		comments,
+		events,
 		lists,
 		projectMembers,
 		projects,
@@ -27,6 +28,7 @@ async function main() {
 		await db.delete(taskAssignees);
 		await db.delete(tasks);
 		await db.delete(lists);
+		await db.delete(events);
 		await db.delete(projectMembers);
 		await db.delete(projects);
 	}
