@@ -199,6 +199,69 @@
 	}
 }
 
+/* Landing page: hero entrance + floating card motion */
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fade-up {
+	animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-6px);
+	}
+}
+
+.animate-float {
+	animation: float 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.animate-fade-up,
+	.animate-float {
+		animation: none;
+	}
+}
+
+/* Dot-grid backdrop for the hero */
+.bg-dot-grid {
+	background-image: radial-gradient(
+		var(--color-french_gray-400) 1px,
+		transparent 1px
+	);
+	background-size: 24px 24px;
+	-webkit-mask-image: radial-gradient(
+		ellipse 80% 60% at 50% 0%,
+		black 40%,
+		transparent 100%
+	);
+	mask-image: radial-gradient(
+		ellipse 80% 60% at 50% 0%,
+		black 40%,
+		transparent 100%
+	);
+}
+
+.dark .bg-dot-grid {
+	background-image: radial-gradient(
+		var(--color-paynes_gray-400) 1px,
+		transparent 1px
+	);
+}
+
 /* Custom scrollbar styles */
 .scrollbar-thin {
 	scrollbar-width: thin;
@@ -245,6 +308,22 @@
 	color: var(--color-outer_space-500);
 }
 
+.dark .rbc-toolbar button {
+	color: var(--color-french_gray-400);
+	border-color: var(--color-paynes_gray-400);
+}
+
+.dark .rbc-toolbar button:hover {
+	background-color: var(--color-paynes_gray-600);
+	color: var(--color-platinum-500);
+}
+
+.dark .rbc-toolbar button.rbc-active {
+	background-color: var(--color-blue_munsell-500);
+	border-color: var(--color-blue_munsell-500);
+	color: white;
+}
+
 .rbc-off-range-bg {
 	background-color: var(--color-platinum-800);
 }
@@ -253,6 +332,36 @@
 	background-color: color-mix(
 		in srgb,
 		var(--color-blue_munsell-500) 12%,
+		transparent
+	);
+}
+
+.dark .rbc-today {
+	background-color: color-mix(
+		in srgb,
+		var(--color-blue_munsell-500) 20%,
+		transparent
+	);
+}
+
+/* .rbc-today can co-occur with .rbc-off-range-bg (today falling in a
+   leading/trailing week). Both are single-class selectors of equal
+   specificity, so whichever rule is declared later in the stylesheet wins,
+   and .dark's descendant-class rules outrank a bare .rbc-today entirely.
+   These combined selectors guarantee the today highlight always shows,
+   in both themes. */
+.rbc-off-range-bg.rbc-today {
+	background-color: color-mix(
+		in srgb,
+		var(--color-blue_munsell-500) 12%,
+		transparent
+	);
+}
+
+.dark .rbc-off-range-bg.rbc-today {
+	background-color: color-mix(
+		in srgb,
+		var(--color-blue_munsell-500) 20%,
 		transparent
 	);
 }
