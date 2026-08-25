@@ -221,12 +221,15 @@ export async function moveTask(input: MoveTaskInput): Promise<MoveTaskState> {
 
 			const destinationList = await queries.lists.getById(destinationListId);
 			if (destinationList && LIST_NAME_TO_STATUS.has(destinationList.name)) {
+				const status = destinationList.name as
+					| "To Do"
+					| "In Progress"
+					| "Review"
+					| "Done";
+
 				await queries.tasks.update(taskId, {
-					status: destinationList.name as
-						| "To Do"
-						| "In Progress"
-						| "Review"
-						| "Done",
+					status,
+					completionDate: status === "Done" ? new Date() : null,
 				});
 			}
 		}

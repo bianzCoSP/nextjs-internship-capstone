@@ -75,6 +75,8 @@ interface BoardState {
 	clearError: () => void;
 }
 
+const LIST_NAME_TO_STATUS = new Set(["To Do", "In Progress", "Review", "Done"]);
+
 function moveTaskInTasks(
 	tasks: KanbanTask[],
 	taskId: string,
@@ -168,6 +170,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 			priority: input.priority,
 			status: "To Do",
 			dueDate: input.dueDate ? new Date(input.dueDate) : null,
+			completionDate: null,
 			position: optimisticPosition,
 			createdAt: new Date(),
 			updatedAt: new Date(),
@@ -316,15 +319,45 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
 		const sourceListId = movingTask.listId;
 
-		set((state) => ({
-			tasks: moveTaskInTasks(
+		set((state) => {
+			const movedTasks = moveTaskInTasks(
 				state.tasks,
 				taskId,
 				destinationListId,
 				destinationIndex,
-			),
-			error: null,
-		}));
+			);
+
+			if (sourceListId === destinationListId) {
+				return { tasks: movedTasks, error: null };
+			}
+
+			const destinationList = state.lists.find(
+				(list) => list.id === destinationListId,
+			);
+
+			if (!destinationList || !LIST_NAME_TO_STATUS.has(destinationList.name)) {
+				return { tasks: movedTasks, error: null };
+			}
+
+			const status = destinationList.name as
+				| "To Do"
+				| "In Progress"
+				| "Review"
+				| "Done";
+
+			return {
+				tasks: movedTasks.map((task) =>
+					task.id === taskId
+						? {
+								...task,
+								status,
+								completionDate: status === "Done" ? new Date() : null,
+							}
+						: task,
+				),
+				error: null,
+			};
+		});
 
 		const nextTasks = get().tasks;
 		const destinationOrderedIds = orderedIdsForList(

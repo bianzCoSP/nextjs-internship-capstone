@@ -117,7 +117,6 @@ async function main() {
 	void reviewAlpha;
 	void inProgressBeta;
 	void reviewBeta;
-	void doneBeta;
 
 	const [taskOne, taskTwo, taskThree, taskFour] = await db
 		.insert(tasks)
@@ -131,6 +130,7 @@ async function main() {
 				status: "To Do",
 				position: 0,
 				dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+				completionDate: null,
 			},
 			{
 				title: "Set up CI/CD pipeline",
@@ -141,6 +141,7 @@ async function main() {
 				status: "In Progress",
 				position: 0,
 				dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 3),
+				completionDate: null,
 			},
 			{
 				title: "Migrate legacy blog posts",
@@ -151,6 +152,8 @@ async function main() {
 				status: "Done",
 				position: 0,
 				dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
+				createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5),
+				completionDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
 			},
 			{
 				title: "Define app onboarding flow",
@@ -161,6 +164,55 @@ async function main() {
 				status: "To Do",
 				position: 0,
 				dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14),
+				completionDate: null,
+			},
+			{
+				title: "Write API documentation",
+				description: "Document all REST endpoints for the mobile team",
+				listId: doneAlpha.id,
+				assigneeId: userB.id,
+				priority: "medium",
+				status: "Done",
+				position: 1,
+				dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
+				createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
+				completionDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
+			},
+			{
+				title: "Fix critical security bug",
+				description: "Patch the auth token validation vulnerability",
+				listId: doneBeta.id,
+				assigneeId: userC.id,
+				priority: "high",
+				status: "Done",
+				position: 0,
+				dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
+				createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
+				completionDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1),
+			},
+			{
+				title: "Optimize database queries",
+				description: "Add missing indexes and cut p95 query time in half",
+				listId: doneAlpha.id,
+				assigneeId: userA.id,
+				priority: "medium",
+				status: "Done",
+				position: 2,
+				dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
+				createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6),
+				completionDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
+			},
+			{
+				title: "Update dependency versions",
+				description: "Bump outdated npm packages and resolve breaking changes",
+				listId: doneBeta.id,
+				assigneeId: userB.id,
+				priority: "low",
+				status: "Done",
+				position: 1,
+				dueDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
+				createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4),
+				completionDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3),
 			},
 		])
 		.returning();
@@ -189,7 +241,7 @@ async function main() {
 	]);
 
 	console.log("Seeding complete.");
-	console.log(`Created ${2} projects, ${8} lists, ${4} tasks, ${4} comments.`);
+	console.log(`Created ${2} projects, ${8} lists, ${8} tasks, ${4} comments.`);
 }
 
 main()

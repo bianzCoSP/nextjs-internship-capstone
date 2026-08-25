@@ -384,12 +384,12 @@ export const queries = {
 							Number,
 						),
 					completedLast7Days:
-						sql<number>`count(distinct case when ${tasks.status} = 'Done' and ${tasks.updatedAt} >= now() - interval '7 days' then ${tasks.id} end)`.mapWith(
+						sql<number>`count(distinct case when ${tasks.status} = 'Done' and ${tasks.completionDate} >= now() - interval '7 days' then ${tasks.id} end)`.mapWith(
 							Number,
 						),
 					avgCompletionDays: sql<
 						number | null
-					>`avg(case when ${tasks.status} = 'Done' then extract(epoch from (${tasks.updatedAt} - ${tasks.createdAt})) / 86400 end)`.mapWith(
+					>`avg(case when ${tasks.status} = 'Done' then extract(epoch from (${tasks.completionDate} - ${tasks.createdAt})) / 86400 end)`.mapWith(
 						(v) => (v === null ? null : Number(v)),
 					),
 				})
@@ -399,7 +399,7 @@ export const queries = {
 
 			const [memberStats] = await db
 				.select({
-					activeUsers:
+					teamMembers:
 						sql<number>`count(distinct ${projectMembers.userId})`.mapWith(
 							Number,
 						),
@@ -426,7 +426,7 @@ export const queries = {
 
 			const teamActivity = await db
 				.select({
-					date: sql<string>`to_char(${tasks.updatedAt}, 'YYYY-MM-DD')`,
+					date: sql<string>`to_char(${tasks.completionDate}, 'YYYY-MM-DD')`,
 					completed: sql<number>`count(distinct ${tasks.id})`.mapWith(Number),
 				})
 				.from(tasks)
@@ -435,11 +435,11 @@ export const queries = {
 					and(
 						inArray(lists.projectId, memberProjectIds),
 						eq(tasks.status, "Done"),
-						sql`${tasks.updatedAt} >= now() - interval '13 days'`,
+						sql`${tasks.completionDate} >= now() - interval '6 days'`,
 					),
 				)
-				.groupBy(sql`to_char(${tasks.updatedAt}, 'YYYY-MM-DD')`)
-				.orderBy(sql`to_char(${tasks.updatedAt}, 'YYYY-MM-DD')`);
+				.groupBy(sql`to_char(${tasks.completionDate}, 'YYYY-MM-DD')`)
+				.orderBy(sql`to_char(${tasks.completionDate}, 'YYYY-MM-DD')`);
 
 			return {
 				velocity: summary?.completedLast7Days ?? 0,
@@ -447,7 +447,7 @@ export const queries = {
 					summary && summary.totalTasks > 0
 						? Math.round((summary.doneTasks / summary.totalTasks) * 100)
 						: 0,
-				activeUsers: memberStats?.activeUsers ?? 0,
+				teamMembers: memberStats?.teamMembers ?? 0,
 				avgTaskDays: summary?.avgCompletionDays
 					? Math.round(summary.avgCompletionDays * 10) / 10
 					: 0,
