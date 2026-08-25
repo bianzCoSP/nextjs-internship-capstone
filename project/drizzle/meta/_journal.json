@@ -64,6 +64,13 @@
       "when": 1787628780077,
       "tag": "0008_lying_silk_fever",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787631779905,
+      "tag": "0009_cuddly_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }
