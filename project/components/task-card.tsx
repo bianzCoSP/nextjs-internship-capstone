@@ -1,8 +1,9 @@
 import { MoreHorizontal } from "lucide-react";
-import type { KeyboardEvent } from "react";
+import Link from "next/link";
 
 export interface TaskCardTask {
 	id: string;
+	slug: string;
 	title: string;
 	description?: string | null;
 	priority: "low" | "medium" | "high";
@@ -15,7 +16,6 @@ export interface TaskCardTask {
 interface TaskCardProps {
 	task: TaskCardTask;
 	isDragging?: boolean;
-	onClick?: (id: string) => void;
 	onEditClick?: (id: string) => void;
 }
 
@@ -106,34 +106,14 @@ function AssigneeAvatars({
 	return null;
 }
 
-export function TaskCard({
-	task,
-	isDragging,
-	onClick,
-	onEditClick,
-}: TaskCardProps) {
+export function TaskCard({ task, isDragging, onEditClick }: TaskCardProps) {
 	const overdue = isOverdue(task.dueDate);
-
-	const interactiveProps = onClick
-		? {
-				role: "button" as const,
-				tabIndex: 0,
-				onClick: () => onClick(task.id),
-				onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
-					if (event.key === "Enter" || event.key === " ") {
-						event.preventDefault();
-						onClick(task.id);
-					}
-				},
-			}
-		: {};
 
 	return (
 		<div
-			{...interactiveProps}
-			className={`relative w-full text-left bg-white dark:bg-outer_space-300 p-4 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 hover:shadow-md transition-shadow ${
+			className={`relative w-full text-left bg-white dark:bg-outer_space-300 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 hover:shadow-md transition-shadow ${
 				isDragging ? "opacity-50" : ""
-			} ${onClick ? "cursor-pointer" : ""}`}
+			}`}
 		>
 			{onEditClick ? (
 				<button
@@ -142,60 +122,63 @@ export function TaskCard({
 					onPointerDown={(event) => event.stopPropagation()}
 					onClick={(event) => {
 						event.stopPropagation();
+						event.preventDefault();
 						onEditClick(task.id);
 					}}
-					className="absolute top-2.5 right-2.5 p-1 rounded hover:bg-platinum-500/60 dark:hover:bg-paynes_gray-400/40 text-paynes_gray-500 dark:text-french_gray-400"
+					className="absolute top-2.5 right-2.5 z-10 p-1 rounded hover:bg-platinum-500/60 dark:hover:bg-paynes_gray-400/40 text-paynes_gray-500 dark:text-french_gray-400"
 				>
 					<MoreHorizontal size={14} />
 				</button>
 			) : null}
 
-			<h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-1 pr-6">
-				{task.title}
-			</h4>
+			<Link href={`/projects/tasks/${task.slug}`} className="block p-4">
+				<h4 className="font-medium text-outer_space-500 dark:text-platinum-500 text-sm mb-1 pr-6">
+					{task.title}
+				</h4>
 
-			{task.description ? (
-				<p className="text-xs text-paynes_gray-500 dark:text-french_gray-400 mb-3 line-clamp-2">
-					{task.description}
-				</p>
-			) : null}
+				{task.description ? (
+					<p className="text-xs text-paynes_gray-500 dark:text-french_gray-400 mb-3 line-clamp-2">
+						{task.description}
+					</p>
+				) : null}
 
-			<div className="flex items-center justify-between mt-2">
-				<div className="flex items-center gap-2">
-					<span
-						className={`px-2 py-1 text-xs font-medium rounded-full ${PRIORITY_STYLES[task.priority]}`}
-					>
-						{task.priority[0].toUpperCase() + task.priority.slice(1)}
-					</span>
-					{task.dueDate ? (
+				<div className="flex items-center justify-between mt-2">
+					<div className="flex items-center gap-2">
 						<span
-							className={`text-xs ${
-								overdue
-									? "text-red-600 dark:text-red-400 font-medium"
-									: "text-paynes_gray-500 dark:text-french_gray-400"
-							}`}
+							className={`px-2 py-1 text-xs font-medium rounded-full ${PRIORITY_STYLES[task.priority]}`}
 						>
-							{formatDueDate(task.dueDate)}
+							{task.priority[0].toUpperCase() + task.priority.slice(1)}
 						</span>
-					) : null}
-				</div>
+						{task.dueDate ? (
+							<span
+								className={`text-xs ${
+									overdue
+										? "text-red-600 dark:text-red-400 font-medium"
+										: "text-paynes_gray-500 dark:text-french_gray-400"
+								}`}
+							>
+								{formatDueDate(task.dueDate)}
+							</span>
+						) : null}
+					</div>
 
-				<div className="flex items-center gap-2">
-					{formatCreatedDate(task.createdAt) ? (
-						<span
-							title={`Created ${formatCreatedDate(task.createdAt)}`}
-							className="text-xs text-paynes_gray-500 dark:text-french_gray-400"
-						>
-							Created {formatCreatedDate(task.createdAt)}
-						</span>
-					) : null}
+					<div className="flex items-center gap-2">
+						{formatCreatedDate(task.createdAt) ? (
+							<span
+								title={`Created ${formatCreatedDate(task.createdAt)}`}
+								className="text-xs text-paynes_gray-500 dark:text-french_gray-400"
+							>
+								Created {formatCreatedDate(task.createdAt)}
+							</span>
+						) : null}
 
-					<AssigneeAvatars
-						assignees={task.assignees}
-						fallbackName={task.assigneeName}
-					/>
+						<AssigneeAvatars
+							assignees={task.assignees}
+							fallbackName={task.assigneeName}
+						/>
+					</div>
 				</div>
-			</div>
+			</Link>
 		</div>
 	);
 }

@@ -32,7 +32,7 @@ export const projects = pgTable(
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
 		name: text("name").notNull(),
-		slug: text("slug").notNull().unique(),
+		slug: text("slug").unique(),
 		description: text("description"),
 		status: statusEnum("status").notNull().default("To Do"),
 		color: text("color").notNull().default("#4a89a9"),
@@ -73,6 +73,7 @@ export const tasks = pgTable(
 	{
 		id: uuid("id").primaryKey().defaultRandom(),
 		title: text("title").notNull(),
+		slug: text("slug").unique(),
 		description: text("description"),
 		listId: uuid("list_id")
 			.notNull()
@@ -94,6 +95,7 @@ export const tasks = pgTable(
 		index("tasks_creator_id_idx").on(table.creatorId),
 		index("tasks_due_date_idx").on(table.dueDate),
 		index("tasks_priority_idx").on(table.priority),
+		index("tasks_slug_idx").on(table.slug),
 	],
 );
 

@@ -33,6 +33,19 @@ async function main() {
 
 	console.log("Seeding database...");
 
+	const usedTaskSlugs = new Set<string>();
+	function taskSlug(title: string) {
+		const base = slugify(title, { lower: true, strict: true });
+		let slug = base;
+		let suffix = 2;
+		while (usedTaskSlugs.has(slug)) {
+			slug = `${base}-${suffix}`;
+			suffix += 1;
+		}
+		usedTaskSlugs.add(slug);
+		return slug;
+	}
+
 	const existingUsers = await db.select().from(users);
 
 	if (existingUsers.length === 0) {
@@ -140,6 +153,7 @@ async function main() {
 		.values([
 			{
 				title: "Design new homepage hero",
+				slug: taskSlug("Design new homepage hero"),
 				description: "Explore 3 concepts and present to stakeholders",
 				listId: todoAlpha.id,
 				creatorId: userA.id,
@@ -151,6 +165,7 @@ async function main() {
 			},
 			{
 				title: "Set up CI/CD pipeline",
+				slug: taskSlug("Set up CI/CD pipeline"),
 				description: "Automate build and deploy on merge to main",
 				listId: inProgressAlpha.id,
 				creatorId: userB.id,
@@ -162,6 +177,7 @@ async function main() {
 			},
 			{
 				title: "Migrate legacy blog posts",
+				slug: taskSlug("Migrate legacy blog posts"),
 				description: "Move all posts from the old CMS and set up redirects",
 				listId: doneAlpha.id,
 				creatorId: userA.id,
@@ -174,6 +190,7 @@ async function main() {
 			},
 			{
 				title: "Define app onboarding flow",
+				slug: taskSlug("Define app onboarding flow"),
 				description: "Wireframe the first-run experience",
 				listId: todoBeta.id,
 				creatorId: userC.id,
@@ -185,6 +202,7 @@ async function main() {
 			},
 			{
 				title: "Write API documentation",
+				slug: taskSlug("Write API documentation"),
 				description: "Document all REST endpoints for the mobile team",
 				listId: doneAlpha.id,
 				creatorId: userB.id,
@@ -197,6 +215,7 @@ async function main() {
 			},
 			{
 				title: "Fix critical security bug",
+				slug: taskSlug("Fix critical security bug"),
 				description: "Patch the auth token validation vulnerability",
 				listId: doneBeta.id,
 				creatorId: userC.id,
@@ -209,6 +228,7 @@ async function main() {
 			},
 			{
 				title: "Optimize database queries",
+				slug: taskSlug("Optimize database queries"),
 				description: "Add missing indexes and cut p95 query time in half",
 				listId: doneAlpha.id,
 				creatorId: userA.id,
@@ -221,6 +241,7 @@ async function main() {
 			},
 			{
 				title: "Update dependency versions",
+				slug: taskSlug("Update dependency versions"),
 				description: "Bump outdated npm packages and resolve breaking changes",
 				listId: doneBeta.id,
 				creatorId: userB.id,

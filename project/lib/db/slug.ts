@@ -1,7 +1,7 @@
 import { like } from "drizzle-orm";
 import slugify from "slugify";
 import { db } from "@/lib/db/drizzle";
-import { projects } from "./schema";
+import { projects, tasks } from "./schema";
 
 export async function generateUniqueProjectSlug(name: string): Promise<string> {
 	const base = slugify(name, { lower: true, strict: true, trim: true });
@@ -14,6 +14,27 @@ export async function generateUniqueProjectSlug(name: string): Promise<string> {
 	if (existing.length === 0) return base;
 
 	const taken = new Set(existing.map((p) => p.slug));
+	if (!taken.has(base)) return base;
+
+	let counter = 2;
+	while (taken.has(`${base}-${counter}`)) {
+		counter++;
+	}
+	return `${base}-${counter}`;
+}
+
+export async function generateUniqueTaskSlug(title: string): Promise<string> {
+	const base =
+		slugify(title, { lower: true, strict: true, trim: true }) || "task";
+
+	const existing = await db
+		.select({ slug: tasks.slug })
+		.from(tasks)
+		.where(like(tasks.slug, `${base}%`));
+
+	if (existing.length === 0) return base;
+
+	const taken = new Set(existing.map((t) => t.slug));
 	if (!taken.has(base)) return base;
 
 	let counter = 2;

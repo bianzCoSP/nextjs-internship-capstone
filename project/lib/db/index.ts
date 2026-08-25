@@ -9,15 +9,19 @@ import {
 	tasks,
 	users,
 } from "./schema";
-import { generateUniqueProjectSlug } from "./slug";
+import { generateUniqueProjectSlug, generateUniqueTaskSlug } from "./slug";
 
 type NewProject = Omit<typeof projects.$inferInsert, "slug">;
 type UpdateProject = Partial<typeof projects.$inferInsert>;
 type NewList = typeof lists.$inferInsert;
-type NewTask = typeof tasks.$inferInsert;
+type NewTask = Omit<typeof tasks.$inferInsert, "slug">;
 type UpdateTask = Partial<typeof tasks.$inferInsert>;
 type NewUser = typeof users.$inferInsert;
 type UpdateUser = Partial<typeof users.$inferInsert>;
+type NewComment = Omit<
+	typeof comments.$inferInsert,
+	"id" | "createdAt" | "updatedAt"
+>;
 
 const DEFAULT_LIST_NAMES = ["To Do", "In Progress", "Review", "Done"];
 
@@ -300,6 +304,7 @@ export const queries = {
 				.select({
 					id: tasks.id,
 					title: tasks.title,
+					slug: tasks.slug,
 					description: tasks.description,
 					listId: tasks.listId,
 					priority: tasks.priority,
@@ -346,8 +351,49 @@ export const queries = {
 				.where(eq(tasks.listId, listId))
 				.orderBy(tasks.position);
 		},
+		getBySlug: async (slug: string) => {
+			const [row] = await db
+				.select({
+					id: tasks.id,
+					title: tasks.title,
+					slug: tasks.slug,
+					description: tasks.description,
+					priority: tasks.priority,
+					status: tasks.status,
+					dueDate: tasks.dueDate,
+					completionDate: tasks.completionDate,
+					createdAt: tasks.createdAt,
+					updatedAt: tasks.updatedAt,
+					listId: tasks.listId,
+					listName: lists.name,
+					projectId: projects.id,
+					projectName: projects.name,
+					projectSlug: projects.slug,
+					creatorId: tasks.creatorId,
+					creatorName: users.name,
+				})
+				.from(tasks)
+				.innerJoin(lists, eq(lists.id, tasks.listId))
+				.innerJoin(projects, eq(projects.id, lists.projectId))
+				.innerJoin(users, eq(users.id, tasks.creatorId))
+				.where(eq(tasks.slug, slug));
+
+			if (!row) return null;
+
+			const assignees = await db
+				.select({ id: users.id, name: users.name })
+				.from(taskAssignees)
+				.innerJoin(users, eq(users.id, taskAssignees.userId))
+				.where(eq(taskAssignees.taskId, row.id));
+
+			return { ...row, assignees };
+		},
 		create: async (data: NewTask) => {
-			const [task] = await db.insert(tasks).values(data).returning();
+			const slug = await generateUniqueTaskSlug(data.title);
+			const [task] = await db
+				.insert(tasks)
+				.values({ ...data, slug })
+				.returning();
 			return task;
 		},
 		setAssignees: async (taskId: string, userIds: string[]) => {
@@ -411,6 +457,29 @@ export const queries = {
 						.where(eq(tasks.id, id)),
 				),
 			]);
+		},
+	},
+	comments: {
+		getByTask: async (taskId: string) => {
+			return await db
+				.select({
+					id: comments.id,
+					content: comments.content,
+					createdAt: comments.createdAt,
+					authorId: comments.authorId,
+					authorName: users.name,
+				})
+				.from(comments)
+				.innerJoin(users, eq(users.id, comments.authorId))
+				.where(eq(comments.taskId, taskId))
+				.orderBy(comments.createdAt);
+		},
+		create: async (data: NewComment) => {
+			const [comment] = await db.insert(comments).values(data).returning();
+			return comment;
+		},
+		delete: async (id: string) => {
+			await db.delete(comments).where(eq(comments.id, id));
 		},
 	},
 	users: {
