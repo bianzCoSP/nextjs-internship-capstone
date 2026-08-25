@@ -35,6 +35,7 @@ Integration:
 import { X } from "lucide-react";
 import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
+import { ColorPicker } from "@/components/color-picker";
 import {
 	type CreateProjectState,
 	createProject,
@@ -132,6 +133,8 @@ export function CreateProjectModal({
 							<p className="text-sm text-red-500">{state.errors.dueDate[0]}</p>
 						)}
 					</div>
+
+					<ColorPicker error={state.errors?.color?.[0]} />
 
 					<div className="flex justify-end space-x-3 pt-4">
 						<button type="button" onClick={onClose} className="px-4 py-2">

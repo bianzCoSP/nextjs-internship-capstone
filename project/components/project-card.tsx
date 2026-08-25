@@ -3,6 +3,7 @@
 import { Calendar, Users } from "lucide-react";
 import Link from "next/link";
 import { ProjectSettingsButton } from "@/components/project-settings-button";
+import { type ProjectStatus, StatusBadge } from "@/components/status-badge";
 
 interface ProjectCardProps {
 	project: {
@@ -13,19 +14,10 @@ interface ProjectCardProps {
 		progress: number;
 		memberCount: number;
 		dueDate?: Date | string | null;
-		status: "To Do" | "In Progress" | "Review" | "Done";
+		status: ProjectStatus;
 		color?: string;
 	};
 }
-
-const statusStyles: Record<string, string> = {
-	"In Progress":
-		"bg-blue_munsell-100 text-blue_munsell-700 dark:bg-blue_munsell-900 dark:text-blue_munsell-300",
-	Review:
-		"bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
-	"To Do": "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-	Done: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-};
 
 function formatDueDate(value?: Date | string | null) {
 	if (!value) return undefined;
@@ -35,7 +27,7 @@ function formatDueDate(value?: Date | string | null) {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
-	const color = project.color ?? "bg-blue_munsell-500";
+	const color = project.color ?? "#4a89a9";
 	const dueDateLabel = formatDueDate(project.dueDate);
 
 	return (
@@ -44,13 +36,18 @@ export function ProjectCard({ project }: ProjectCardProps) {
 			className="block bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-6 hover:shadow-lg transition-shadow cursor-pointer"
 		>
 			<div className="flex items-start justify-between mb-4">
-				<div className={`w-3 h-3 rounded-full ${color}`} />
+				<div
+					className="w-3 h-3 rounded-full"
+					style={{ backgroundColor: color }}
+				/>
 				<ProjectSettingsButton
 					project={{
 						id: project.id,
 						name: project.name,
 						description: project.description ?? null,
 						dueDate: project.dueDate ?? null,
+						color: project.color ?? null,
+						status: project.status,
 					}}
 					navigateOnRename={false}
 				/>
@@ -88,18 +85,14 @@ export function ProjectCard({ project }: ProjectCardProps) {
 				</div>
 				<div className="w-full bg-french_gray-300 dark:bg-paynes_gray-400 rounded-full h-2">
 					<div
-						className={`h-2 rounded-full transition-all duration-300 ${color}`}
-						style={{ width: `${project.progress}%` }}
+						className="h-2 rounded-full transition-all duration-300"
+						style={{ width: `${project.progress}%`, backgroundColor: color }}
 					/>
 				</div>
 			</div>
 
 			<div className="flex items-center justify-between">
-				<span
-					className={`px-2 py-1 text-xs font-medium rounded-full ${statusStyles[project.status]}`}
-				>
-					{project.status}
-				</span>
+				<StatusBadge status={project.status} />
 			</div>
 		</Link>
 	);

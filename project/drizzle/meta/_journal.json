@@ -57,6 +57,13 @@
       "when": 1787622383347,
       "tag": "0007_confused_iron_lad",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787628780077,
+      "tag": "0008_lying_silk_fever",
+      "breakpoints": true
     }
   ]
 }

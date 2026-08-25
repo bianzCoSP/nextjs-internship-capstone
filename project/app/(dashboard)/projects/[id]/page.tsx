@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { KanbanBoard } from "@/components/kanban-board";
 import { ProjectSettingsButton } from "@/components/project-settings-button";
+import { StatusBadge } from "@/components/status-badge";
 import { queries } from "@/lib/db/index";
 
 export default async function ProjectPage({
@@ -34,9 +35,12 @@ export default async function ProjectPage({
 						<ArrowLeft size={20} />
 					</Link>
 					<div>
-						<h1 className="text-3xl font-bold text-outer_space-500 dark:text-platinum-500">
-							{project.name}
-						</h1>
+						<div className="flex items-center gap-3">
+							<h1 className="text-3xl font-bold text-outer_space-500 dark:text-platinum-500">
+								{project.name}
+							</h1>
+							<StatusBadge status={project.status} />
+						</div>
 						{project.description ? (
 							<p className="text-paynes_gray-500 dark:text-french_gray-500 mt-1">
 								{project.description}
@@ -56,6 +60,8 @@ export default async function ProjectPage({
 							name: project.name,
 							description: project.description,
 							dueDate: project.dueDate,
+							color: project.color,
+							status: project.status,
 						}}
 					/>
 				</div>

@@ -10,6 +10,8 @@ interface ProjectSettingsButtonProps {
 		name: string;
 		description: string | null;
 		dueDate?: Date | string | null;
+		color?: string | null;
+		status?: "To Do" | "In Progress" | "Review" | "Done";
 	};
 	navigateOnRename?: boolean;
 }

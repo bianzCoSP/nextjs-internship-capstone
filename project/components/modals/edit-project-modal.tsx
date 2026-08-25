@@ -4,6 +4,7 @@ import { Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { createPortal, useFormStatus } from "react-dom";
+import { ColorPicker } from "@/components/color-picker";
 import {
 	deleteProject,
 	type UpdateProjectState,
@@ -16,10 +17,14 @@ interface EditProjectModalProps {
 		name: string;
 		description: string | null;
 		dueDate?: Date | string | null;
+		color?: string | null;
+		status?: "To Do" | "In Progress" | "Review" | "Done";
 	};
 	onClose: () => void;
 	navigateOnRename?: boolean;
 }
+
+const STATUS_OPTIONS = ["To Do", "In Progress", "Review", "Done"] as const;
 
 const initialState: UpdateProjectState = { success: false };
 
@@ -153,6 +158,31 @@ export function EditProjectModal({
 								</p>
 							)}
 						</div>
+
+						<div>
+							<label className="block text-sm font-medium mb-2">
+								Status
+								<select
+									name="status"
+									defaultValue={project.status ?? "To Do"}
+									className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-outer_space-500 text-outer_space-500 dark:text-platinum-500"
+								>
+									{STATUS_OPTIONS.map((option) => (
+										<option key={option} value={option}>
+											{option}
+										</option>
+									))}
+								</select>
+							</label>
+							{state.errors?.status && (
+								<p className="text-sm text-red-500">{state.errors.status[0]}</p>
+							)}
+						</div>
+
+						<ColorPicker
+							defaultValue={project.color ?? undefined}
+							error={state.errors?.color?.[0]}
+						/>
 
 						<div className="flex items-center justify-between pt-4">
 							<button

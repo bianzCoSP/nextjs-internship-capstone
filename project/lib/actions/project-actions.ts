@@ -22,10 +22,13 @@ export async function createProject(
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
 
+	const rawColor = formData.get("color") as string;
+
 	const rawData = {
 		name: formData.get("name") as string,
 		description: (formData.get("description") as string) || undefined,
 		dueDate: rawDueDate ? new Date(rawDueDate) : today,
+		color: rawColor || undefined,
 	};
 
 	const parsedSchema = projectSchema.safeParse(rawData);
@@ -59,11 +62,15 @@ export async function updateProject(
 	if (!clerkId) return { success: false, errors: { _form: ["Not signed in"] } };
 
 	const rawDueDate = formData.get("dueDate") as string;
+	const rawColor = formData.get("color") as string;
+	const rawStatus = formData.get("status") as string;
 
 	const rawData = {
 		name: formData.get("name") as string,
 		description: (formData.get("description") as string) || undefined,
 		dueDate: rawDueDate ? new Date(rawDueDate) : undefined,
+		color: rawColor || undefined,
+		status: rawStatus || undefined,
 	};
 
 	const parsedSchema = projectSchema.safeParse(rawData);

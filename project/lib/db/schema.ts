@@ -35,7 +35,7 @@ export const projects = pgTable(
 		slug: text("slug").notNull().unique(),
 		description: text("description"),
 		status: statusEnum("status").notNull().default("To Do"),
-		color: text("color").notNull().default("bg-blue_munsell-500"),
+		color: text("color").notNull().default("#4a89a9"),
 		ownerId: uuid("owner_id")
 			.notNull()
 			.references(() => users.id),

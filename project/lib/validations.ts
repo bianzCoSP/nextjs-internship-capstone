@@ -12,6 +12,11 @@ export const projectSchema = z.object({
 	dueDate: z
 		.date()
 		.refine(isNotInPast, { message: "Due date can't be in the past" }),
+	color: z
+		.string()
+		.regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Enter a valid hex color")
+		.optional(),
+	status: z.enum(["To Do", "In Progress", "Review", "Done"]).optional(),
 });
 
 export const taskSchema = z.object({
