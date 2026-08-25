@@ -141,11 +141,19 @@
 		--outer-space: #46494c;
 		--paynes-gray: #4c5c68;
 		--blue-munsell: #1985a1;
+
+		--tooltip-bg: #ffffff;
+		--tooltip-text: #46494c;
+		--tooltip-border: #d1cfd1;
 	}
 
 	.dark {
 		/* Dark theme color adjustments */
 		color-scheme: dark;
+
+		--tooltip-bg: #46494c;
+		--tooltip-text: #dcdcdd;
+		--tooltip-border: #3c4953;
 	}
 }
 

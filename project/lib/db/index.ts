@@ -369,4 +369,102 @@ export const queries = {
 			await db.delete(users).where(eq(users.clerkId, clerkId));
 		},
 	},
+	analytics: {
+		getForUser: async (userId: string) => {
+			const memberProjectIds = db
+				.select({ projectId: projectMembers.projectId })
+				.from(projectMembers)
+				.where(eq(projectMembers.userId, userId));
+
+			const [summary] = await db
+				.select({
+					totalTasks: sql<number>`count(distinct ${tasks.id})`.mapWith(Number),
+					doneTasks:
+						sql<number>`count(distinct case when ${tasks.status} = 'Done' then ${tasks.id} end)`.mapWith(
+							Number,
+						),
+					completedLast7Days:
+						sql<number>`count(distinct case when ${tasks.status} = 'Done' and ${tasks.updatedAt} >= now() - interval '7 days' then ${tasks.id} end)`.mapWith(
+							Number,
+						),
+					avgCompletionDays: sql<
+						number | null
+					>`avg(case when ${tasks.status} = 'Done' then extract(epoch from (${tasks.updatedAt} - ${tasks.createdAt})) / 86400 end)`.mapWith(
+						(v) => (v === null ? null : Number(v)),
+					),
+				})
+				.from(tasks)
+				.innerJoin(lists, eq(lists.id, tasks.listId))
+				.where(inArray(lists.projectId, memberProjectIds));
+
+			const [memberStats] = await db
+				.select({
+					activeUsers:
+						sql<number>`count(distinct ${projectMembers.userId})`.mapWith(
+							Number,
+						),
+				})
+				.from(projectMembers)
+				.where(inArray(projectMembers.projectId, memberProjectIds));
+
+			const projectProgress = await db
+				.select({
+					id: projects.id,
+					name: projects.name,
+					totalTasks: sql<number>`count(distinct ${tasks.id})`.mapWith(Number),
+					doneTasks:
+						sql<number>`count(distinct case when ${tasks.status} = 'Done' then ${tasks.id} end)`.mapWith(
+							Number,
+						),
+				})
+				.from(projects)
+				.leftJoin(lists, eq(lists.projectId, projects.id))
+				.leftJoin(tasks, eq(tasks.listId, lists.id))
+				.where(inArray(projects.id, memberProjectIds))
+				.groupBy(projects.id)
+				.orderBy(projects.name);
+
+			const teamActivity = await db
+				.select({
+					date: sql<string>`to_char(${tasks.updatedAt}, 'YYYY-MM-DD')`,
+					completed: sql<number>`count(distinct ${tasks.id})`.mapWith(Number),
+				})
+				.from(tasks)
+				.innerJoin(lists, eq(lists.id, tasks.listId))
+				.where(
+					and(
+						inArray(lists.projectId, memberProjectIds),
+						eq(tasks.status, "Done"),
+						sql`${tasks.updatedAt} >= now() - interval '13 days'`,
+					),
+				)
+				.groupBy(sql`to_char(${tasks.updatedAt}, 'YYYY-MM-DD')`)
+				.orderBy(sql`to_char(${tasks.updatedAt}, 'YYYY-MM-DD')`);
+
+			return {
+				velocity: summary?.completedLast7Days ?? 0,
+				efficiency:
+					summary && summary.totalTasks > 0
+						? Math.round((summary.doneTasks / summary.totalTasks) * 100)
+						: 0,
+				activeUsers: memberStats?.activeUsers ?? 0,
+				avgTaskDays: summary?.avgCompletionDays
+					? Math.round(summary.avgCompletionDays * 10) / 10
+					: 0,
+				projectProgress: projectProgress.map((p) => ({
+					id: p.id,
+					name: p.name,
+					progress:
+						p.totalTasks > 0
+							? Math.round((p.doneTasks / p.totalTasks) * 100)
+							: 0,
+				})),
+				teamActivity,
+			};
+		},
+	},
 };
+
+export type AnalyticsData = Awaited<
+	ReturnType<typeof queries.analytics.getForUser>
+>;
