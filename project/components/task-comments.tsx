@@ -16,7 +16,7 @@ export interface TaskCommentItem {
 
 interface TaskCommentsProps {
 	taskId: string;
-	taskSlug: string;
+	taskSlug: string | null;
 	comments: TaskCommentItem[];
 }
 
@@ -46,7 +46,7 @@ export function TaskComments({
 	comments,
 }: TaskCommentsProps) {
 	const formRef = useRef<HTMLFormElement>(null);
-	const boundAddComment = addComment.bind(null, taskId, taskSlug);
+	const boundAddComment = addComment.bind(null, taskId, taskSlug ?? "");
 	const [state, formAction, isPending] = useActionState(
 		boundAddComment,
 		initialState,
@@ -90,7 +90,7 @@ export function TaskComments({
 										{formatTimestamp(comment.createdAt)}
 									</span>
 								</div>
-								<p className="text-sm text-paynes_gray-600 dark:text-french_gray-300 whitespace-pre-wrap break-words">
+								<p className="text-sm text-paynes_gray-600 dark:text-french_gray-300 whitespace-pre-wrap wrap-break-word">
 									{comment.content}
 								</p>
 							</div>

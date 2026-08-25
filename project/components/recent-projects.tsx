@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export interface RecentProject {
 	id: string;
-	slug: string;
+	slug: string | null;
 	name: string;
 	description: string | null;
 	status: string;
@@ -42,7 +42,7 @@ export function RecentProjects({ projects }: RecentProjectsProps) {
 					{projects.map((project) => (
 						<Link
 							key={project.id}
-							href={`/projects/${project.slug}`}
+							href={`/projects/${project.slug ?? project.id}`}
 							className="block border border-french_gray-300 dark:border-paynes_gray-400 rounded-lg p-4 hover:border-blue_munsell-500 transition-colors"
 						>
 							<h4 className="font-medium text-outer_space-500 dark:text-platinum-500">

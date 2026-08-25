@@ -24,6 +24,11 @@ export default async function ProjectPage({
 		queries.projects.getMembers(project.id),
 	]);
 
+	const kanbanTasks = tasks.map((task) => ({
+		...task,
+		slug: task.slug ?? task.id,
+	}));
+
 	return (
 		<div className="flex h-full flex-col">
 			{/* Project Header */}
@@ -71,9 +76,9 @@ export default async function ProjectPage({
 			<div className="flex-1 min-h-0">
 				<KanbanBoard
 					lists={lists}
-					tasks={tasks}
+					tasks={kanbanTasks}
 					projectId={project.id}
-					projectSlug={project.slug}
+					projectSlug={project.slug ?? project.id}
 					members={members}
 				/>
 			</div>
