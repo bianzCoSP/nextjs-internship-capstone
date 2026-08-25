@@ -20,8 +20,15 @@ interface UserOption {
 	email: string;
 }
 
+interface PreselectedMember {
+	id: string;
+	name: string;
+	email: string;
+}
+
 interface InviteMemberModalProps {
 	projects: ProjectOption[];
+	preselectedMember?: PreselectedMember;
 	onClose: () => void;
 	onInvited?: () => void;
 }
@@ -30,11 +37,22 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function InviteMemberModal({
 	projects,
+	preselectedMember,
 	onClose,
 	onInvited,
 }: InviteMemberModalProps) {
 	const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
-	const [selectedUsers, setSelectedUsers] = useState<UserOption[]>([]);
+	const [selectedUsers, setSelectedUsers] = useState<UserOption[]>(
+		preselectedMember
+			? [
+					{
+						value: preselectedMember.id,
+						label: preselectedMember.name,
+						email: preselectedMember.email,
+					},
+				]
+			: [],
+	);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [successCount, setSuccessCount] = useState<number | null>(null);

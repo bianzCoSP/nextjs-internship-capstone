@@ -1,12 +1,19 @@
 "use client";
 
-import { Mail, MoreHorizontal, Users } from "lucide-react";
+import { Mail, MoreHorizontal, UserPlus, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { queries } from "@/lib/db";
+import { InviteMemberModal } from "./modals/invite-member-modal";
 
 export type TeamMember = Awaited<
 	ReturnType<typeof queries.users.getTeammates>
 >[number];
+
+interface ProjectOption {
+	id: string;
+	name: string;
+}
 
 function getInitials(name: string) {
 	const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -14,7 +21,13 @@ function getInitials(name: string) {
 	return initials.join("") || "?";
 }
 
-function TeamMemberCard({ member }: { member: TeamMember }) {
+function TeamMemberCard({
+	member,
+	onInvite,
+}: {
+	member: TeamMember;
+	onInvite: (member: TeamMember) => void;
+}) {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
@@ -71,14 +84,18 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
 							role="menu"
 							className="absolute right-0 mt-1 w-44 bg-white dark:bg-outer_space-500 border border-french_gray-300 dark:border-paynes_gray-400 rounded-lg shadow-lg z-10 overflow-hidden"
 						>
-							<a
+							<button
+								type="button"
 								role="menuitem"
-								href={`mailto:${member.email}`}
-								onClick={() => setMenuOpen(false)}
-								className="block px-4 py-2 text-sm text-outer_space-500 dark:text-platinum-500 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400"
+								onClick={() => {
+									setMenuOpen(false);
+									onInvite(member);
+								}}
+								className="flex w-full items-center px-4 py-2 text-sm text-left text-outer_space-500 dark:text-platinum-500 hover:bg-platinum-500 dark:hover:bg-paynes_gray-400"
 							>
-								Email {member.name.split(" ")[0]}
-							</a>
+								<UserPlus size={14} className="mr-2 shrink-0" />
+								Invite to project
+							</button>
 						</div>
 					)}
 				</div>
@@ -104,7 +121,16 @@ function TeamMemberCard({ member }: { member: TeamMember }) {
 	);
 }
 
-export function TeamGrid({ members }: { members: TeamMember[] }) {
+export function TeamGrid({
+	members,
+	projects,
+}: {
+	members: TeamMember[];
+	projects: ProjectOption[];
+}) {
+	const router = useRouter();
+	const [inviteTarget, setInviteTarget] = useState<TeamMember | null>(null);
+
 	if (members.length === 0) {
 		return (
 			<div className="bg-white dark:bg-outer_space-500 rounded-lg border border-french_gray-300 dark:border-paynes_gray-400 p-12 text-center">
@@ -120,10 +146,29 @@ export function TeamGrid({ members }: { members: TeamMember[] }) {
 	}
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			{members.map((member) => (
-				<TeamMemberCard key={member.id} member={member} />
-			))}
-		</div>
+		<>
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{members.map((member) => (
+					<TeamMemberCard
+						key={member.id}
+						member={member}
+						onInvite={setInviteTarget}
+					/>
+				))}
+			</div>
+
+			{inviteTarget && (
+				<InviteMemberModal
+					projects={projects}
+					preselectedMember={{
+						id: inviteTarget.id,
+						name: inviteTarget.name,
+						email: inviteTarget.email,
+					}}
+					onClose={() => setInviteTarget(null)}
+					onInvited={() => router.refresh()}
+				/>
+			)}
+		</>
 	);
 }

@@ -36,7 +36,13 @@ export default async function TeamPage() {
 				/>
 			</div>
 
-			<TeamGrid members={teammates} />
+			<TeamGrid
+				members={teammates}
+				projects={projects.map((project) => ({
+					id: project.id,
+					name: project.name,
+				}))}
+			/>
 		</div>
 	);
 }
