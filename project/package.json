@@ -12,6 +12,7 @@
 		"test:e2e": "",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
+		"migrate": "tsx lib/db/migrate.ts",
 		"db:push": "drizzle-kit push",
 		"db:seed": "tsx lib/db/seed.ts",
 		"db:clear": "tsx lib/db/clear.ts",
