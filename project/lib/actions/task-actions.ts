@@ -16,7 +16,7 @@ export type CreateTaskState = {
 	};
 };
 
-const createTaskSchema = taskSchema.omit({ assigneeId: true });
+const createTaskSchema = taskSchema.omit({ creatorId: true });
 
 export async function createTask(
 	_prevState: CreateTaskState,
@@ -79,7 +79,7 @@ export async function createTask(
 		...parsedSchema.data,
 		listId,
 		position,
-		assigneeId: user.id,
+		creatorId: user.id,
 		status,
 	});
 

@@ -29,7 +29,7 @@ export const taskSchema = z.object({
 	dueDate: z
 		.date({ message: "Due date is required" })
 		.refine(isNotInPast, { message: "Due date can't be in the past" }),
-	assigneeId: z.string().optional(),
+	creatorId: z.string().optional(),
 });
 
 export const userSchema = z.object({

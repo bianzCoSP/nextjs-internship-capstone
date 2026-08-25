@@ -167,7 +167,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 			title: input.title,
 			description: input.description ?? null,
 			listId: input.listId,
-			assigneeId: null,
+			creatorId: null,
 			assigneeName: input.assigneeName ?? null,
 			assignees: [],
 			priority: input.priority,

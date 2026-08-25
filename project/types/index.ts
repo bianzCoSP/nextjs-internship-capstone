@@ -36,7 +36,7 @@ export interface Task {
 	title: string;
 	description?: string;
 	listId: string;
-	assigneeId?: string;
+	creatorId: string;
 	priority: "low" | "medium" | "high";
 	dueDate?: Date;
 	position: number;
