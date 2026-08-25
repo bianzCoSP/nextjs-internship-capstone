@@ -145,6 +145,28 @@
 		--tooltip-bg: #ffffff;
 		--tooltip-text: #46494c;
 		--tooltip-border: #d1cfd1;
+
+		/* shadcn/ui base tokens, mapped onto the custom palette (HSL triplets, no hsl() wrapper) */
+		--background: 0 0% 100%;
+		--foreground: 210 6% 29%; /* outer_space-500 */
+		--border: 240 3% 82%; /* french_gray-300 */
+		--input: 240 3% 82%; /* french_gray-300 */
+		--ring: 192 71% 36%; /* blue_munsell-500 */
+		--primary: 192 71% 36%; /* blue_munsell-500 */
+		--primary-foreground: 0 0% 100%;
+		--secondary: 240 5% 92%;
+		--secondary-foreground: 210 6% 29%;
+		--destructive: 0 72% 51%;
+		--destructive-foreground: 0 0% 100%;
+		--muted: 210 4% 89%; /* platinum-300, visible against white cards */
+		--muted-foreground: 210 3% 45%; /* paynes_gray-500ish */
+		--accent: 240 5% 92%;
+		--accent-foreground: 210 6% 29%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 210 6% 29%;
+		--card: 0 0% 100%;
+		--card-foreground: 210 6% 29%;
+		--radius: 0.5rem;
 	}
 
 	.dark {
@@ -154,6 +176,26 @@
 		--tooltip-bg: #46494c;
 		--tooltip-text: #dcdcdd;
 		--tooltip-border: #3c4953;
+
+		--background: 210 4% 18%;
+		--foreground: 210 4% 86%; /* platinum-500 */
+		--border: 200 8% 26%; /* paynes_gray-400 */
+		--input: 200 8% 26%;
+		--ring: 192 71% 36%;
+		--primary: 192 71% 36%;
+		--primary-foreground: 0 0% 100%;
+		--secondary: 210 5% 24%;
+		--secondary-foreground: 210 4% 86%;
+		--destructive: 0 63% 42%;
+		--destructive-foreground: 0 0% 100%;
+		--muted: 200 8% 34%; /* lighter than the card bg so it's visible on outer_space-500 */
+		--muted-foreground: 210 4% 70%;
+		--accent: 210 5% 24%;
+		--accent-foreground: 210 4% 86%;
+		--popover: 210 4% 18%;
+		--popover-foreground: 210 4% 86%;
+		--card: 210 6% 29%; /* outer_space-500 */
+		--card-foreground: 210 4% 86%;
 	}
 }
 
